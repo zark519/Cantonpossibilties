@@ -490,8 +490,19 @@
     renderWeeklyChart();
   };
 
-  function openSongModal() { document.getElementById('songModal').style.display = 'flex'; }
-  function closeSongModal() { document.getElementById('songModal').style.display = 'none'; resetForm(); }
+  function openSongModal() {
+    // 點擊「+」新增時：完全重設所有欄位（包括歌名、歌手、日期、ID等）
+    document.getElementById('songForm').reset();
+    document.getElementById('editSongId').value = '';
+    document.getElementById('formTitle').textContent = '➕ 輸入/編輯歌曲資料';
+    document.getElementById('saveBtn').textContent = '💾 儲存歌曲榜單';
+    document.getElementById('chartWeek').value = '';
+    init40WeeksInputs();
+    
+    document.getElementById('songModal').style.display = 'flex';
+  }
+
+  function closeSongModal() { document.getElementById('songModal').style.display = 'none'; }
 
   function init40WeeksInputs(editingSong = null) {
     const container = document.getElementById('weeksInputs');
@@ -677,7 +688,7 @@
   function saveSongs() { localStorage.setItem('chart_songs', JSON.stringify(songs)); }
 
   function resetForm() {
-    // 修正：僅清除 40 週排名輸入框與預覽值，保留歌曲名稱、歌手、派台日期
+    // 點擊表單內的「🔄 重設」按鈕：僅清除 40 週排名輸入框與預覽值，完整保留歌名、歌手、日期
     const inputs = document.querySelectorAll('.rank-input');
     inputs.forEach(input => input.value = '');
     for (let i = 1; i <= 40; i++) {
@@ -702,7 +713,7 @@
 
     autoCalculateChartWeeks();
     init40WeeksInputs(song);
-    openSongModal();
+    document.getElementById('songModal').style.display = 'flex';
   }
 
   function deleteSong(id) {
@@ -1113,9 +1124,8 @@
         const importedSongs = JSON.parse(jsonString);
 
         if (Array.isArray(importedSongs)) {
-          // 修改：改為取代（Replace all original data）
           if (confirm(`警告：匯入新數據將會【取代 / 覆蓋】現有的所有榜單資料！\n是否確定要執行？`)) {
-            songs = importedSongs; // 直接替換整個陣列
+            songs = importedSongs; // 取代原有所有資料
             recalculateAllActualRanks();
             saveSongs();
             updateSongTable();
