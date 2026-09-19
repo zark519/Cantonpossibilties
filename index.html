@@ -19,6 +19,7 @@
       color: var(--text-main);
       margin: 0;
       padding: 20px;
+      padding-bottom: 80px; /* 給浮動按鈕留空間 */
     }
 
     .container {
@@ -39,23 +40,11 @@
       box-shadow: 0 2px 8px rgba(0,0,0,0.08);
     }
 
-    .form-group {
+    .top-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
       margin-bottom: 15px;
-    }
-
-    label {
-      display: block;
-      font-weight: bold;
-      margin-bottom: 5px;
-    }
-
-    input[type="text"], input[type="date"], select {
-      width: 100%;
-      padding: 10px;
-      border: 1px solid var(--border-color);
-      border-radius: 4px;
-      box-sizing: border-box;
-      font-size: 14px;
     }
 
     .btn {
@@ -66,57 +55,12 @@
       border-radius: 4px;
       cursor: pointer;
       font-size: 14px;
-      margin-right: 8px;
-      margin-bottom: 8px;
     }
 
-    .btn:hover {
-      opacity: 0.9;
-    }
-
+    .btn:hover { opacity: 0.9; }
     .btn-danger { background-color: #dc3545; }
     .btn-success { background-color: #28a745; }
     .btn-secondary { background-color: #6c757d; }
-
-    /* 40周排名輸入表格 */
-    .weeks-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-      gap: 10px;
-      max-height: 400px;
-      overflow-y: auto;
-      border: 1px solid var(--border-color);
-      padding: 10px;
-      border-radius: 4px;
-      margin-bottom: 15px;
-    }
-
-    .week-input-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      background: #f1f3f5;
-      padding: 6px 10px;
-      border-radius: 4px;
-    }
-
-    .week-input-item span {
-      font-size: 12px;
-      color: #555;
-    }
-
-    .week-input-item input {
-      width: 60px;
-      padding: 4px;
-      text-align: center;
-    }
-
-    .score-badge {
-      font-size: 12px;
-      font-weight: bold;
-      color: #28a745;
-      margin-left: 5px;
-    }
 
     /* 榜單切換按鈕區域 */
     .tab-buttons {
@@ -127,8 +71,8 @@
     }
 
     .tab-btn {
-      padding: 12px 24px;
-      font-size: 16px;
+      padding: 10px 20px;
+      font-size: 15px;
       font-weight: bold;
       border-radius: 30px;
       border: 2px solid #007bff;
@@ -160,10 +104,12 @@
       padding: 12px 15px;
       border-bottom: 1px solid var(--border-color);
       background: white;
+      cursor: pointer;
+      transition: background 0.2s;
     }
 
-    .chart-item:nth-child(even) {
-      background: #fafafa;
+    .chart-item:hover {
+      background: #f1f3f5;
     }
 
     .chart-rank {
@@ -193,11 +139,114 @@
 
     .chart-score {
       font-size: 14px;
-      color: #6c757d;
+      color: #28a745;
       font-weight: bold;
+      text-align: right;
     }
 
-    /* 歌曲管理列表 */
+    /* 右下角浮動加號按鈕 (FAB) */
+    .fab {
+      position: fixed;
+      right: 30px;
+      bottom: 30px;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background-color: #007bff;
+      color: white;
+      font-size: 32px;
+      border: none;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 99;
+    }
+
+    /* Modal 彈出視窗 */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 100;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: 8px;
+      padding: 25px;
+      width: 90%;
+      max-width: 800px;
+      max-height: 90vh;
+      overflow-y: auto;
+      position: relative;
+    }
+
+    .close-modal {
+      position: absolute;
+      top: 15px; right: 20px;
+      font-size: 24px;
+      cursor: pointer;
+      color: #aaa;
+    }
+
+    .form-group { margin-bottom: 15px; }
+    label { display: block; font-weight: bold; margin-bottom: 5px; }
+    input[type="text"], input[type="date"], select {
+      width: 100%; padding: 10px; border: 1px solid var(--border-color);
+      border-radius: 4px; box-sizing: border-box; font-size: 14px;
+    }
+
+    /* 40周排名輸入表格 */
+    .weeks-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 10px;
+      max-height: 350px;
+      overflow-y: auto;
+      border: 1px solid var(--border-color);
+      padding: 10px;
+      border-radius: 4px;
+      margin-bottom: 15px;
+    }
+
+    .week-input-item {
+      background: #f8f9fa;
+      padding: 8px;
+      border-radius: 4px;
+      border: 1px solid #e9ecef;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .week-input-header {
+      font-size: 12px;
+      font-weight: bold;
+      color: #555;
+    }
+
+    .week-input-body {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .week-input-body input {
+      width: 60px;
+      padding: 4px;
+      text-align: center;
+    }
+
+    .week-stats {
+      font-size: 11px;
+      color: #666;
+    }
+
     .song-table {
       width: 100%;
       border-collapse: collapse;
@@ -210,66 +259,22 @@
       text-align: left;
     }
 
-    .song-table th {
-      background: #e9ecef;
-    }
-
-    .file-actions {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-      margin-top: 10px;
-    }
+    .song-table th { background: #e9ecef; }
   </style>
 </head>
 <body>
 
 <div class="container">
-  <h1>🎵 音樂榜單管理系統</h1>
+  <h1>🎵 音樂榜單 Dashboard</h1>
 
-  <!-- 匯入 / 匯出 TXT 區域 -->
-  <div class="card">
-    <h3>📂 資料備份與匯入/匯出 (TXT 格式)</h3>
-    <div class="file-actions">
-      <button class="btn btn-success" onclick="exportToTXT()">下載 TXT 資料備份</button>
-      <input type="file" id="importFile" accept=".txt" style="display:none;" onchange="importFromTXT(event)">
-      <button class="btn btn-secondary" onclick="document.getElementById('importFile').click()">上傳/匯入 TXT 檔案</button>
-    </div>
+  <!-- 頂部 Export & Import 區域 -->
+  <div class="top-actions">
+    <button class="btn btn-success" onclick="exportToTXT()">📤 Export TXT</button>
+    <input type="file" id="importFile" accept=".txt" style="display:none;" onchange="importFromTXT(event)">
+    <button class="btn btn-secondary" onclick="document.getElementById('importFile').click()">📥 Import TXT</button>
   </div>
 
-  <!-- 新增/編輯歌曲區域 -->
-  <div class="card">
-    <h3 id="formTitle">➕ 輸入/編輯歌曲資料</h3>
-    <form id="songForm">
-      <input type="hidden" id="editSongId">
-      <div style="display: flex; gap: 15px;">
-        <div class="form-group" style="flex: 1;">
-          <label for="songTitle">歌曲名稱：</label>
-          <input type="text" id="songTitle" required placeholder="例如：海闊天空">
-        </div>
-        <div class="form-group" style="flex: 1;">
-          <label for="artistName">歌手名稱：</label>
-          <input type="text" id="artistName" required placeholder="例如：Beyond">
-        </div>
-        <div class="form-group" style="flex: 1;">
-          <label for="entryDate">進榜日期：</label>
-          <input type="date" id="entryDate" required onchange="calculateEntryWeek()">
-        </div>
-      </div>
-
-      <p id="entryWeekNotice" style="color: #007bff; font-weight: bold; margin-top: -5px;"></p>
-
-      <label>輸入連續 40 週排名（可留空自動拉 Curve，輸入 1-50）：</label>
-      <div class="weeks-grid" id="weeksInputs">
-        <!-- 40 行排名輸入框動態產生 -->
-      </div>
-
-      <button type="submit" class="btn btn-primary" id="saveBtn">儲存歌曲榜單</button>
-      <button type="button" class="btn btn-secondary" onclick="resetForm()">重置/取消</button>
-    </form>
-  </div>
-
-  <!-- 榜單展示區域 -->
+  <!-- Dashboard 榜單展示區域 -->
   <div class="card">
     <div class="tab-buttons">
       <button class="tab-btn active" id="tabWeekly" onclick="switchTab('weekly')">📅 週榜單 (Top 50)</button>
@@ -301,7 +306,7 @@
 
   <!-- 已登記歌曲列表 -->
   <div class="card">
-    <h3>📜 已登記歌曲列表</h3>
+    <h3>📜 已登記歌曲管理</h3>
     <table class="song-table">
       <thead>
         <tr>
@@ -312,99 +317,175 @@
           <th>操作</th>
         </tr>
       </thead>
-      <tbody id="songTableBody">
-        <!-- 歌曲列表 -->
-      </tbody>
+      <tbody id="songTableBody"></tbody>
     </table>
   </div>
 </div>
 
+<!-- 右下角浮動加號按鈕 (FAB) -->
+<button class="fab" onclick="openSongModal()" title="新增歌曲">+</button>
+
+<!-- 歌曲編輯/錄入 Modal 彈窗 -->
+<div class="modal" id="songModal">
+  <div class="modal-content">
+    <span class="close-modal" onclick="closeSongModal()">&times;</span>
+    <h3 id="formTitle">➕ 輸入/編輯歌曲資料</h3>
+    <form id="songForm">
+      <input type="hidden" id="editSongId">
+      <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+        <div class="form-group" style="flex: 1; min-width: 200px;">
+          <label for="songTitle">歌曲名稱：</label>
+          <input type="text" id="songTitle" required placeholder="例如：海闊天空">
+        </div>
+        <div class="form-group" style="flex: 1; min-width: 200px;">
+          <label for="artistName">歌手名稱：</label>
+          <input type="text" id="artistName" required placeholder="例如：Beyond">
+        </div>
+        <div class="form-group" style="flex: 1; min-width: 200px;">
+          <label for="entryDate">進榜日期：</label>
+          <input type="date" id="entryDate" required onchange="calculateEntryWeek()">
+        </div>
+      </div>
+
+      <p id="entryWeekNotice" style="color: #007bff; font-weight: bold; margin-top: -5px;"></p>
+
+      <label>輸入連續 40 週排名（可留空自動拉 Curve）：</label>
+      <div class="weeks-grid" id="weeksInputs"></div>
+
+      <div style="text-align: right; margin-top: 15px;">
+        <button type="button" class="btn btn-secondary" onclick="closeSongModal()">取消</button>
+        <button type="submit" class="btn btn-primary" id="saveBtn">儲存歌曲榜單</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <script>
-  // 資料存儲
   let songs = JSON.parse(localStorage.getItem('chart_songs') || '[]');
   let currentTab = 'weekly';
 
+  // 13 個排名基準點
+  const BASE_POINTS = [
+    { rank: 1,  pts: 290 },
+    { rank: 2,  pts: 270 },
+    { rank: 3,  pts: 254 },
+    { rank: 5,  pts: 230 },
+    { rank: 10, pts: 180 },
+    { rank: 15, pts: 150 },
+    { rank: 20, pts: 125 },
+    { rank: 25, pts: 100 },
+    { rank: 30, pts: 80  },
+    { rank: 35, pts: 60  },
+    { rank: 40, pts: 45  },
+    { rank: 45, pts: 30  },
+    { rank: 50, pts: 20  }
+  ];
+
+  // 分段線性拉 Curve 計算基礎分數
+  function calculateBasePoints(rank) {
+    if (!rank || rank < 1 || rank > 50) return 0;
+    
+    // 如果剛好匹配基準點
+    const exact = BASE_POINTS.find(p => p.rank === rank);
+    if (exact) return exact.pts;
+
+    // 尋找上下區間
+    for (let i = 0; i < BASE_POINTS.length - 1; i++) {
+      let p1 = BASE_POINTS[i];
+      let p2 = BASE_POINTS[i+1];
+      if (rank > p1.rank && rank < p2.rank) {
+        let slope = (p2.pts - p1.pts) / (p2.rank - p1.rank);
+        return p1.pts + slope * (rank - p1.rank);
+      }
+    }
+    return 0;
+  }
+
   // 初始化
   window.onload = function() {
-    init40WeeksInputs();
     updateSongTable();
     updateWeekSelectOptions();
     renderWeeklyChart();
   };
 
-  // 生成 40 行排名輸入框
-  function init40WeeksInputs() {
+  function openSongModal() {
+    document.getElementById('songModal').style.display = 'flex';
+  }
+
+  function closeSongModal() {
+    document.getElementById('songModal').style.display = 'none';
+    resetForm();
+  }
+
+  // 生成 40 行排名/分數/實際排名輸入框
+  function init40WeeksInputs(editingSong = null) {
     const container = document.getElementById('weeksInputs');
     container.innerHTML = '';
+
     for (let i = 1; i <= 40; i++) {
+      let existingData = editingSong ? editingSong.weeklyData.find(w => w.weekIndex === i) : null;
+      let rankVal = existingData ? existingData.inputRank : '';
+      let ptsVal = existingData ? existingData.points : '-';
+      let actualRankVal = existingData && existingData.actualRank ? `#${existingData.actualRank}` : '-';
+
       container.innerHTML += `
         <div class="week-input-item">
-          <span>第 ${i} 週:</span>
-          <input type="number" min="1" max="50" class="rank-input" data-week="${i}" onchange="updateScorePreview(${i})">
-          <span class="score-badge" id="scorePreview_${i}">-</span>
+          <div class="week-input-header">第 ${i} 週</div>
+          <div class="week-input-body">
+            <input type="number" min="1" max="50" class="rank-input" data-week="${i}" value="${rankVal}" placeholder="1-50" onchange="updateScorePreview(${i})">
+            <div class="week-stats">
+              <div>點數: <strong id="scorePreview_${i}" style="color:#28a745;">${ptsVal}</strong></div>
+              <div>實際排名: <strong id="actualRankPreview_${i}" style="color:#007bff;">${actualRankVal}</strong></div>
+            </div>
+          </div>
         </div>
       `;
     }
   }
 
-  // 預覽分數：1 = 50, 2 = 49 ... 50 = 1
   function updateScorePreview(weekNum) {
     const input = document.querySelector(`.rank-input[data-week="${weekNum}"]`);
     const badge = document.getElementById(`scorePreview_${weekNum}`);
     const val = parseInt(input.value);
     if (val >= 1 && val <= 50) {
-      badge.textContent = `${51 - val}分`;
+      let base = calculateBasePoints(val);
+      badge.textContent = `${base.toFixed(1)}點`;
     } else {
       badge.textContent = '-';
     }
   }
 
-  // 計算星期的函數：固定星期六為最後一天，4日以上歸入該月/年
+  // 計算週細節 (週六為結算日，4日歸屬原則)
   function getWeekDetails(dateObj) {
     const date = new Date(dateObj);
     const day = date.getDay(); // 0: Sun, 1: Mon, ... 4: Thu, 5: Fri, 6: Sat
 
-    // 如果日期係星期四或之後 (Thu=4, Fri=5, Sat=6)，進榜星期為下一個星期
     if (day >= 4) {
-      date.setDate(date.getDate() + (7 - day + 1)); // 移動到下週一作為計算基準
+      date.setDate(date.getDate() + (7 - day + 1));
     }
 
-    // 尋找該星期的星期六（結算日）
     const currentDay = date.getDay();
     const distToSat = (6 - currentDay + 7) % 7;
     const satDate = new Date(date);
     satDate.setDate(date.getDate() + distToSat);
 
-    // 尋找該星期的星期日（起始日）
     const sunDate = new Date(satDate);
     sunDate.setDate(satDate.getDate() - 6);
 
-    // 判斷 4 日以上歸屬月份/年份
-    // 計算該星期7天中，哪個月/年份佔了4天以上
-    let monthCounts = {};
     let yearCounts = {};
     let tempDate = new Date(sunDate);
 
     for (let i = 0; i < 7; i++) {
       let y = tempDate.getFullYear();
-      let m = tempDate.getMonth() + 1;
-      let key = `${y}-${m}`;
-      
-      monthCounts[key] = (monthCounts[key] || 0) + 1;
       yearCounts[y] = (yearCounts[y] || 0) + 1;
-
       tempDate.setDate(tempDate.getDate() + 1);
     }
 
     let targetYear = Object.keys(yearCounts).find(y => yearCounts[y] >= 4) || satDate.getFullYear();
-    
-    // 計算是該年的第幾週 (以 4 日規則算)
-    // 取得該年1月1日
     let jan1 = new Date(targetYear, 0, 1);
     let days = Math.floor((satDate - jan1) / (24 * 60 * 60 * 1000));
     let weekNum = Math.ceil((days + jan1.getDay() + 1) / 7);
 
-    // 日期格式化 MM/DD/YYYY
     const formatDate = (d) => {
       let mm = String(d.getMonth() + 1).padStart(2, '0');
       let dd = String(d.getDate()).padStart(2, '0');
@@ -431,7 +512,7 @@
     document.getElementById('entryWeekNotice').textContent = `首個進榜星期：${weekInfo.weekLabel}`;
   }
 
-  // 自動拉 Curve (Interpolation) 演算法
+  // 自動拉 Curve (Interpolation)
   function autoInterpolateRanks(rawRanks) {
     let result = [...rawRanks];
     let filledIndices = [];
@@ -442,7 +523,7 @@
       }
     }
 
-    if (filledIndices.length < 2) return result; // 少於兩個點無法拉 Curve
+    if (filledIndices.length < 2) return result;
 
     for (let k = 0; k < filledIndices.length - 1; k++) {
       let startIndex = filledIndices[k];
@@ -456,7 +537,6 @@
       for (let j = 1; j < steps; j++) {
         let interpolatedVal = startVal + (diff / steps) * j;
         let rounded = Math.round(interpolatedVal);
-        // 確保限制在 1 - 50
         rounded = Math.max(1, Math.min(50, rounded));
         result[startIndex + j] = rounded;
       }
@@ -476,7 +556,6 @@
 
     if (!title || !artist || !entryDateVal) return;
 
-    // 收集輸入的排名
     const inputs = document.querySelectorAll('.rank-input');
     let rawRanks = [];
     inputs.forEach(input => {
@@ -484,32 +563,40 @@
       rawRanks.push((val >= 1 && val <= 50) ? val : null);
     });
 
-    // 執行拉 Curve 補全中間留空週數
     let finalRanks = autoInterpolateRanks(rawRanks);
-
-    // 計算每週的絕對週次 (Week Key)
     let startWeekInfo = getWeekDetails(new Date(entryDateVal));
     let weeklyData = [];
-
     let currentSat = new Date(startWeekInfo.satDate);
+
+    // 尋找現有歌曲以保留或產生微擾動 (Random Offset)
+    let existingSong = songs.find(s => s.id === editId);
 
     for (let i = 0; i < finalRanks.length; i++) {
       if (finalRanks[i] !== null) {
         let rank = finalRanks[i];
-        let score = 51 - rank; // 分數計算 1=50, 50=1
+        let basePts = calculateBasePoints(rank);
 
+        // 產生 -5.0 到 +5.0 之間的隨機數
+        let existingWeek = existingSong ? existingSong.weeklyData.find(w => w.weekIndex === (i + 1)) : null;
+        let randomOffset = existingWeek && existingWeek.randomOffset !== undefined 
+          ? existingWeek.randomOffset 
+          : (Math.random() * 10 - 5);
+
+        let finalPoints = Math.round((basePts + randomOffset) * 10) / 10;
         let weekInfo = getWeekDetails(currentSat);
 
         weeklyData.push({
           weekIndex: i + 1,
-          rank: rank,
-          score: score,
+          inputRank: rank,
+          basePoints: basePts,
+          randomOffset: Math.round(randomOffset * 10) / 10,
+          points: finalPoints,
           weekKey: weekInfo.weekKey,
           weekLabel: weekInfo.weekLabel,
-          year: weekInfo.year
+          year: weekInfo.year,
+          actualRank: null // 隨後計算全榜時更新
         });
       }
-      // 前進下一週 Saturday
       currentSat.setDate(currentSat.getDate() + 7);
     }
 
@@ -529,12 +616,50 @@
       songs.push(songObj);
     }
 
+    // 更新全局所有星期的「實際排名」
+    recalculateAllActualRanks();
+
     saveSongs();
-    resetForm();
+    closeSongModal();
     updateSongTable();
     updateWeekSelectOptions();
     renderCurrentTab();
   };
+
+  // 重新計算全榜所有星期的實際排名
+  function recalculateAllActualRanks() {
+    let weekKeys = new Set();
+    songs.forEach(s => s.weeklyData.forEach(w => weekKeys.add(w.weekKey)));
+
+    weekKeys.forEach(wKey => {
+      let weekEntries = [];
+
+      songs.forEach(s => {
+        let w = s.weeklyData.find(item => item.weekKey === wKey);
+        if (w) {
+          weekEntries.push({
+            song: s,
+            weekData: w,
+            points: w.points,
+            entryDate: new Date(s.entryDate)
+          });
+        }
+      });
+
+      // 排序：分數高至低，同分則按進榜日期新至舊 (Date DESC)
+      weekEntries.sort((a, b) => {
+        if (b.points !== a.points) {
+          return b.points - a.points;
+        }
+        return b.entryDate - a.entryDate;
+      });
+
+      // 寫回實際排名
+      weekEntries.forEach((entry, idx) => {
+        entry.weekData.actualRank = idx + 1;
+      });
+    });
+  }
 
   function saveSongs() {
     localStorage.setItem('chart_songs', JSON.stringify(songs));
@@ -561,24 +686,14 @@
     document.getElementById('saveBtn').textContent = '更新歌曲榜單';
 
     calculateEntryWeek();
-    init40WeeksInputs();
-
-    // 填回排名
-    song.weeklyData.forEach(w => {
-      let idx = w.weekIndex;
-      let input = document.querySelector(`.rank-input[data-week="${idx}"]`);
-      if (input) {
-        input.value = w.rank;
-        updateScorePreview(idx);
-      }
-    });
-
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    init40WeeksInputs(song);
+    openSongModal();
   }
 
   function deleteSong(id) {
     if (confirm('確定要刪除這首歌嗎？')) {
       songs = songs.filter(s => s.id !== id);
+      recalculateAllActualRanks();
       saveSongs();
       updateSongTable();
       updateWeekSelectOptions();
@@ -586,14 +701,13 @@
     }
   }
 
-  // 更新歌曲列表 Display
   function updateSongTable() {
     const tbody = document.getElementById('songTableBody');
     tbody.innerHTML = '';
     songs.forEach(song => {
       tbody.innerHTML += `
         <tr>
-          <td><strong style="color:#dc3545;">${song.title}</strong></td>
+          <td><strong style="color:#dc3545; cursor:pointer;" onclick="editSong('${song.id}')">${song.title}</strong></td>
           <td>${song.artist}</td>
           <td><small>${song.startWeekLabel}</small></td>
           <td>${song.weeklyData.length} 週</td>
@@ -606,7 +720,6 @@
     });
   }
 
-  // 選項選單更新 (周數 & 年份)
   function updateWeekSelectOptions() {
     const weekSelect = document.getElementById('weekSelect');
     const yearSelect = document.getElementById('yearSelect');
@@ -621,14 +734,12 @@
       });
     });
 
-    // 排序周次
     const sortedWeeks = Array.from(weekMap.keys()).sort().reverse();
     weekSelect.innerHTML = '';
     sortedWeeks.forEach(key => {
       weekSelect.innerHTML += `<option value="${key}">${weekMap.get(key)}</option>`;
     });
 
-    // 排序年份
     const sortedYears = Array.from(years).sort().reverse();
     yearSelect.innerHTML = '';
     sortedYears.forEach(y => {
@@ -636,7 +747,6 @@
     });
   }
 
-  // 切換榜單 Tab
   function switchTab(tab) {
     currentTab = tab;
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
@@ -646,15 +756,15 @@
 
     if (tab === 'weekly') {
       document.getElementById('tabWeekly').classList.add('active');
-      document.getElementById('chartTitle').textContent = '週榜單 (Top 50)';
+      document.getElementById('chartTitle').textContent = '週榜單 ( Top 50 點數排名)';
       renderWeeklyChart();
     } else if (tab === 'yearly') {
       document.getElementById('tabYearly').classList.add('active');
-      document.getElementById('chartTitle').textContent = '年度總榜單';
+      document.getElementById('chartTitle').textContent = '年度總點數榜單';
       renderYearlyChart();
     } else if (tab === 'total') {
       document.getElementById('tabTotal').classList.add('active');
-      document.getElementById('chartTitle').textContent = '累積總榜單';
+      document.getElementById('chartTitle').textContent = '歷史累積總點數榜單';
       renderTotalChart();
     }
   }
@@ -663,7 +773,7 @@
     switchTab(currentTab);
   }
 
-  // 1. 渲染週榜單 (50 個位置 Matching)
+  // 1. 渲染週榜單 (高至低排名 + 同分按進榜日期新至舊)
   function renderWeeklyChart() {
     const selectedWeekKey = document.getElementById('weekSelect').value;
     const displayContainer = document.getElementById('chartDisplay');
@@ -677,36 +787,45 @@
     const weekText = document.getElementById('weekSelect').options[document.getElementById('weekSelect').selectedIndex]?.text;
     document.getElementById('chartSubTitle').textContent = weekText || '';
 
-    // 建立 1 - 50 位Matching Array
-    let rankMap = {};
+    let weekList = [];
 
     songs.forEach(song => {
       let match = song.weeklyData.find(w => w.weekKey === selectedWeekKey);
-      if (match && match.rank >= 1 && match.rank <= 50) {
-        rankMap[match.rank] = {
+      if (match) {
+        weekList.push({
+          songId: song.id,
           title: song.title,
           artist: song.artist,
-          score: match.score
-        };
+          entryDate: new Date(song.entryDate),
+          inputRank: match.inputRank,
+          points: match.points,
+          actualRank: match.actualRank
+        });
       }
     });
 
+    // 高至低排序；同分按進榜日期新至舊
+    weekList.sort((a, b) => {
+      if (b.points !== a.points) return b.points - a.points;
+      return b.entryDate - a.entryDate;
+    });
+
     for (let r = 1; r <= 50; r++) {
-      let item = rankMap[r];
+      let item = weekList[r - 1];
       if (item) {
         displayContainer.innerHTML += `
-          <li class="chart-item">
+          <li class="chart-item" onclick="editSong('${item.songId}')">
             <div class="chart-rank">${r}</div>
             <div class="chart-info">
               <div class="song-title">${item.title}</div>
-              <div class="artist-name">${item.artist}</div>
+              <div class="artist-name">${item.artist} <small style="color:#888;">(輸入排名:#${item.inputRank})</small></div>
             </div>
-            <div class="chart-score">${item.score} 分</div>
+            <div class="chart-score">${item.points} 點</div>
           </li>
         `;
       } else {
         displayContainer.innerHTML += `
-          <li class="chart-item" style="opacity: 0.4;">
+          <li class="chart-item" style="opacity: 0.3; cursor:default;">
             <div class="chart-rank">${r}</div>
             <div class="chart-info">
               <div class="song-title" style="color:#aaa;">--- 虛位以待 ---</div>
@@ -719,7 +838,7 @@
     }
   }
 
-  // 2. 渲染年榜單 (累計年度分數)
+  // 2. 渲染年榜單
   function renderYearlyChart() {
     const selectedYear = parseInt(document.getElementById('yearSelect').value);
     const displayContainer = document.getElementById('chartDisplay');
@@ -730,32 +849,37 @@
       return;
     }
 
-    document.getElementById('chartSubTitle').textContent = `${selectedYear} 年度累計總分數排名`;
+    document.getElementById('chartSubTitle').textContent = `${selectedYear} 年度累計點數排名`;
 
     let songScores = [];
 
     songs.forEach(song => {
-      let totalYearScore = 0;
-      let weeksInYear = 0;
+      let totalPts = 0;
+      let weeksCount = 0;
 
       song.weeklyData.forEach(w => {
         if (w.year === selectedYear) {
-          totalYearScore += w.score;
-          weeksInYear++;
+          totalPts += w.points;
+          weeksCount++;
         }
       });
 
-      if (totalYearScore > 0) {
+      if (totalPts > 0) {
         songScores.push({
+          songId: song.id,
           title: song.title,
           artist: song.artist,
-          score: totalYearScore,
-          weeks: weeksInYear
+          score: Math.round(totalPts * 10) / 10,
+          weeks: weeksCount,
+          entryDate: new Date(song.entryDate)
         });
       }
     });
 
-    songScores.sort((a, b) => b.score - a.score);
+    songScores.sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score;
+      return b.entryDate - a.entryDate;
+    });
 
     if (songScores.length === 0) {
       displayContainer.innerHTML = '<li class="chart-item">該年份暫無數據</li>';
@@ -764,13 +888,13 @@
 
     songScores.forEach((item, index) => {
       displayContainer.innerHTML += `
-        <li class="chart-item">
+        <li class="chart-item" onclick="editSong('${item.songId}')">
           <div class="chart-rank">${index + 1}</div>
           <div class="chart-info">
             <div class="song-title">${item.title}</div>
             <div class="artist-name">${item.artist} (${item.weeks} 週在榜)</div>
           </div>
-          <div class="chart-score">${item.score} 分</div>
+          <div class="chart-score">${item.score} 點</div>
         </li>
       `;
     });
@@ -780,23 +904,28 @@
   function renderTotalChart() {
     const displayContainer = document.getElementById('chartDisplay');
     displayContainer.innerHTML = '';
-    document.getElementById('chartSubTitle').textContent = '歷史所有星期總分數累計排名';
+    document.getElementById('chartSubTitle').textContent = '歷史所有星期總點數累計排名';
 
     let songScores = [];
 
     songs.forEach(song => {
-      let totalScore = song.weeklyData.reduce((sum, w) => sum + w.score, 0);
-      if (totalScore > 0) {
+      let totalPts = song.weeklyData.reduce((sum, w) => sum + w.points, 0);
+      if (totalPts > 0) {
         songScores.push({
+          songId: song.id,
           title: song.title,
           artist: song.artist,
-          score: totalScore,
-          weeks: song.weeklyData.length
+          score: Math.round(totalPts * 10) / 10,
+          weeks: song.weeklyData.length,
+          entryDate: new Date(song.entryDate)
         });
       }
     });
 
-    songScores.sort((a, b) => b.score - a.score);
+    songScores.sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score;
+      return b.entryDate - a.entryDate;
+    });
 
     if (songScores.length === 0) {
       displayContainer.innerHTML = '<li class="chart-item">暫無累積數據</li>';
@@ -805,19 +934,19 @@
 
     songScores.forEach((item, index) => {
       displayContainer.innerHTML += `
-        <li class="chart-item">
+        <li class="chart-item" onclick="editSong('${item.songId}')">
           <div class="chart-rank">${index + 1}</div>
           <div class="chart-info">
             <div class="song-title">${item.title}</div>
             <div class="artist-name">${item.artist} (共 ${item.weeks} 週)</div>
           </div>
-          <div class="chart-score">${item.score} 分</div>
+          <div class="chart-score">${item.score} 點</div>
         </li>
       `;
     });
   }
 
-  // 導出為 TXT 檔案 (人眼可讀 + 包含編碼 Data)
+  // Export TXT
   function exportToTXT() {
     if (songs.length === 0) {
       alert('現時沒有任何歌曲資料可導出！');
@@ -833,15 +962,14 @@
       txtContent += `   進榜日期：${s.entryDate} (${s.startWeekLabel})\n`;
       txtContent += `   週排名紀錄：\n`;
       s.weeklyData.forEach(w => {
-        txtContent += `     - [第${w.weekIndex}週] ${w.weekLabel} -> 排名:${w.rank} (分數:${w.score})\n`;
+        txtContent += `     - [第${w.weekIndex}週] ${w.weekLabel} -> 輸入排名:${w.inputRank} | 點數:${w.points} | 實際排名:#${w.actualRank}\n`;
       });
       txtContent += "\n";
     });
 
     txtContent += "=========================================\n";
-    txtContent += "系統數據區 (請勿修改以下文字，導入時使用)：\n";
     txtContent += "DATA_START\n";
-    txtContent += btoa(encodeURIComponent(JSON.stringify(songs))); // Base64 編碼
+    txtContent += btoa(encodeURIComponent(JSON.stringify(songs)));
     txtContent += "\nDATA_END\n";
 
     const blob = new Blob([txtContent], { type: 'text/plain;charset=utf-8' });
@@ -853,7 +981,7 @@
     URL.revokeObjectURL(url);
   }
 
-  // 從 TXT 檔案導入資料
+  // Import TXT
   function importFromTXT(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -876,6 +1004,7 @@
         if (Array.isArray(importedSongs)) {
           if (confirm(`成功讀取 TXT 數據！是否覆蓋目前的 ${songs.length} 首歌曲資料？`)) {
             songs = importedSongs;
+            recalculateAllActualRanks();
             saveSongs();
             updateSongTable();
             updateWeekSelectOptions();
@@ -888,7 +1017,7 @@
       } catch (err) {
         alert('導入失敗：' + err.message);
       }
-      event.target.value = ''; // 清空 input
+      event.target.value = '';
     };
     reader.readAsText(file);
   }
