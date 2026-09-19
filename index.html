@@ -87,7 +87,6 @@
       color: white;
     }
 
-    /* 榜單 Display */
     .chart-header {
       text-align: center;
       margin-bottom: 15px;
@@ -145,7 +144,6 @@
       text-align: right;
     }
 
-    /* 右下角浮動加號按鈕 (FAB) */
     .fab {
       position: fixed;
       right: 30px;
@@ -165,7 +163,6 @@
       z-index: 99;
     }
 
-    /* Modal 彈出視窗 */
     .modal {
       display: none;
       position: fixed;
@@ -202,7 +199,6 @@
       border-radius: 4px; box-sizing: border-box; font-size: 14px;
     }
 
-    /* 40周排名輸入表格 */
     .weeks-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
@@ -268,14 +264,12 @@
 <div class="container">
   <h1>🎵 音樂榜單 Dashboard</h1>
 
-  <!-- 頂部 Export & Import 區域 -->
   <div class="top-actions">
     <button class="btn btn-success" onclick="exportToTXT()">📤 Export TXT</button>
     <input type="file" id="importFile" accept=".txt" style="display:none;" onchange="importFromTXT(event)">
     <button class="btn btn-secondary" onclick="document.getElementById('importFile').click()">📥 Import TXT</button>
   </div>
 
-  <!-- Dashboard 榜單展示區域 -->
   <div class="card">
     <div class="tab-buttons">
       <button class="tab-btn active" id="tabWeekly" onclick="switchTab('weekly')">📅 週榜單 (Top 50)</button>
@@ -291,10 +285,13 @@
       <select id="weekSelect" onchange="renderWeeklyChart()"></select>
     </div>
 
-    <!-- 年榜選擇器 -->
+    <!-- 年榜單位選擇器（年份 + 週數） -->
     <div id="yearlySelectorArea" class="form-group" style="max-width: 400px; margin: 0 auto 20px auto; display:none;">
       <label for="yearSelect">選擇年份：</label>
-      <select id="yearSelect" onchange="onYearSelectChange()"></select>
+      <select id="yearSelect" onchange="updateYearWeekOptions(); onYearSelectChange();"></select>
+      
+      <label for="yearWeekSelect" style="margin-top: 10px;">選擇週數範圍：</label>
+      <select id="yearWeekSelect" onchange="onYearSelectChange()"></select>
     </div>
 
     <!-- 歌手搜尋輸入框 -->
@@ -311,7 +308,6 @@
     <ul class="chart-list" id="chartDisplay"></ul>
   </div>
 
-  <!-- 已登記歌曲列表 -->
   <div class="card">
     <h3>📜 已登記歌曲管理</h3>
     <table class="song-table">
@@ -331,7 +327,6 @@
 
 <button class="fab" onclick="openSongModal()" title="新增歌曲">+</button>
 
-<!-- Modal 彈窗 -->
 <div class="modal" id="songModal">
   <div class="modal-content">
     <span class="close-modal" onclick="closeSongModal()">&times;</span>
@@ -365,7 +360,8 @@
     </form>
   </div>
 </div>
-  <script>
+
+<script>
   let songs = JSON.parse(localStorage.getItem('chart_songs') || '[]');
   let currentTab = 'weekly';
 
@@ -440,36 +436,31 @@
     }
   }
 
-  // 修正後的週數邏輯 (1/4/2026 會歸為 2026 年第 1 週)
+  // 星期一至星期四 = 當週進榜；星期五至星期日 = 下週進榜
   function getWeekDetails(dateObj) {
-    const date = new Date(dateObj);
+    let date = new Date(dateObj);
+    const dayOfWeek = date.getDay(); // 0:日, 1:一, 2:二, 3:三, 4:四, 5:五, 6:六
+
+    if (dayOfWeek === 5 || dayOfWeek === 6 || dayOfWeek === 0) {
+      let daysToAdd = 1;
+      if (dayOfWeek === 5) daysToAdd = 3;
+      else if (dayOfWeek === 6) daysToAdd = 2;
+      date.setDate(date.getDate() + daysToAdd);
+    }
+
     const currentDay = date.getDay();
-    
     const sunDate = new Date(date);
     sunDate.setDate(date.getDate() - currentDay);
     
     const satDate = new Date(sunDate);
     satDate.setDate(sunDate.getDate() + 6);
 
-    let yearCounts = {};
-    let tempDate = new Date(sunDate);
-    for (let i = 0; i < 7; i++) {
-      let y = tempDate.getFullYear();
-      yearCounts[y] = (yearCounts[y] || 0) + 1;
-      tempDate.setDate(tempDate.getDate() + 1);
-    }
-
-    let targetYear = parseInt(Object.keys(yearCounts).find(y => yearCounts[y] >= 4) || satDate.getFullYear());
+    let targetYear = satDate.getFullYear();
 
     let jan1 = new Date(targetYear, 0, 1);
     let jan1Day = jan1.getDay();
     let firstSun = new Date(jan1);
-    
-    if (jan1Day <= 3) {
-      firstSun.setDate(jan1.getDate() - jan1Day);
-    } else {
-      firstSun.setDate(jan1.getDate() + (7 - jan1Day));
-    }
+    firstSun.setDate(jan1.getDate() - jan1Day);
 
     let diffDays = Math.round((sunDate - firstSun) / (24 * 60 * 60 * 1000));
     let weekNum = Math.floor(diffDays / 7) + 1;
@@ -479,11 +470,7 @@
       let prevJan1 = new Date(targetYear, 0, 1);
       let prevJan1Day = prevJan1.getDay();
       let prevFirstSun = new Date(prevJan1);
-      if (prevJan1Day <= 3) {
-        prevFirstSun.setDate(prevJan1.getDate() - prevJan1Day);
-      } else {
-        prevFirstSun.setDate(prevJan1.getDate() + (7 - prevJan1Day));
-      }
+      prevFirstSun.setDate(prevJan1.getDate() - prevJan1Day);
       let prevDiffDays = Math.round((sunDate - prevFirstSun) / (24 * 60 * 60 * 1000));
       weekNum = Math.floor(prevDiffDays / 7) + 1;
     }
@@ -717,6 +704,33 @@
     const sortedYears = Array.from(years).sort().reverse();
     yearSelect.innerHTML = '';
     sortedYears.forEach(y => yearSelect.innerHTML += `<option value="${y}">${y} 年</option>`);
+
+    updateYearWeekOptions();
+  }
+
+  function updateYearWeekOptions() {
+    const yearSelect = document.getElementById('yearSelect');
+    const yearWeekSelect = document.getElementById('yearWeekSelect');
+    const selectedYear = parseInt(yearSelect.value);
+
+    yearWeekSelect.innerHTML = '<option value="all">全年度累計</option>';
+    if (!selectedYear) return;
+
+    let weekSet = new Set();
+    songs.forEach(s => {
+      s.weeklyData.forEach(w => {
+        if (w.year === selectedYear) {
+          let match = w.weekLabel.match(/第\d+週/);
+          let label = match ? `第 ${w.weekKey.split('_W')[1]} 週` : w.weekKey;
+          weekSet.add(JSON.stringify({ key: w.weekKey, label: label }));
+        }
+      });
+    });
+
+    let sortedWeeks = Array.from(weekSet).map(s => JSON.parse(s)).sort((a,b) => a.key.localeCompare(b.key));
+    sortedWeeks.forEach(w => {
+      yearWeekSelect.innerHTML += `<option value="${w.key}">${w.label}</option>`;
+    });
   }
 
   function switchTab(tab) {
@@ -808,6 +822,7 @@
 
   function renderYearlyChart() {
     const selectedYear = parseInt(document.getElementById('yearSelect').value);
+    const selectedWeekKey = document.getElementById('yearWeekSelect').value;
     const displayContainer = document.getElementById('chartDisplay');
     displayContainer.innerHTML = '';
 
@@ -816,13 +831,19 @@
       return;
     }
 
-    document.getElementById('chartSubTitle').textContent = `${selectedYear} 年度累計點數排名`;
+    let weekText = selectedWeekKey === 'all' ? '全年度累計' : document.getElementById('yearWeekSelect').options[document.getElementById('yearWeekSelect').selectedIndex]?.text;
+    document.getElementById('chartSubTitle').textContent = `${selectedYear} 年度 (${weekText}) 累計點數排名`;
 
     let songScores = [];
     songs.forEach(song => {
       let totalPts = 0, weeksCount = 0;
       song.weeklyData.forEach(w => {
-        if (w.year === selectedYear) { totalPts += w.points; weeksCount++; }
+        if (w.year === selectedYear) {
+          if (selectedWeekKey === 'all' || w.weekKey === selectedWeekKey) {
+            totalPts += w.points;
+            weeksCount++;
+          }
+        }
       });
       if (totalPts > 0) songScores.push({ songId: song.id, title: song.title, artist: song.artist, score: Math.round(totalPts * 10) / 10, weeks: weeksCount, entryDate: new Date(song.entryDate) });
     });
@@ -850,6 +871,7 @@
 
   function renderYearlyChampionsChart() {
     const selectedYear = parseInt(document.getElementById('yearSelect').value);
+    const selectedWeekKey = document.getElementById('yearWeekSelect').value;
     const displayContainer = document.getElementById('chartDisplay');
     displayContainer.innerHTML = '';
 
@@ -858,20 +880,23 @@
       return;
     }
 
-    document.getElementById('chartSubTitle').textContent = `${selectedYear} 年獲得過週榜冠軍(#1)的歌曲`;
+    let weekText = selectedWeekKey === 'all' ? '全年度' : document.getElementById('yearWeekSelect').options[document.getElementById('yearWeekSelect').selectedIndex]?.text;
+    document.getElementById('chartSubTitle').textContent = `${selectedYear} 年 (${weekText}) 獲得過週榜冠軍(#1)的歌曲`;
 
     let champMap = new Map();
     songs.forEach(song => {
       song.weeklyData.forEach(w => {
         if (w.year === selectedYear && w.actualRank === 1) {
-          if (!champMap.has(song.id)) {
-            champMap.set(song.id, { songId: song.id, title: song.title, artist: song.artist, champWeeks: [], count: 0 });
+          if (selectedWeekKey === 'all' || w.weekKey === selectedWeekKey) {
+            if (!champMap.has(song.id)) {
+              champMap.set(song.id, { songId: song.id, title: song.title, artist: song.artist, champWeeks: [], count: 0 });
+            }
+            let item = champMap.get(song.id);
+            let matchWeekNum = w.weekLabel.match(/第\d+週/);
+            let weekShort = matchWeekNum ? matchWeekNum[0] : w.weekKey;
+            item.champWeeks.push(weekShort);
+            item.count++;
           }
-          let item = champMap.get(song.id);
-          let matchWeekNum = w.weekLabel.match(/第\d+週/);
-          let weekShort = matchWeekNum ? matchWeekNum[0] : w.weekKey;
-          item.champWeeks.push(weekShort);
-          item.count++;
         }
       });
     });
@@ -880,7 +905,7 @@
     champList.sort((a, b) => b.count - a.count);
 
     if (champList.length === 0) {
-      displayContainer.innerHTML = '<li class="chart-item" style="justify-content:center; color:#999;">該年份暫無週榜冠軍歌曲</li>';
+      displayContainer.innerHTML = '<li class="chart-item" style="justify-content:center; color:#999;">該範圍內暫無週榜冠軍歌曲</li>';
       return;
     }
 
@@ -1034,4 +1059,3 @@
 </script>
 </body>
 </html>
-
