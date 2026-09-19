@@ -728,10 +728,19 @@
     years.add(new Date().getFullYear());
 
     songs.forEach(s => {
+      // 1. 將歌曲本身的所有 weeklyData 加入選單
       s.weeklyData.forEach(w => {
         weekMap.set(w.weekKey, w.weekLabel);
         years.add(w.year);
       });
+      // 2. 強制確保每首歌的「起始進榜週」一定會被加入選單
+      if (s.entryDate) {
+        let parts = s.entryDate.split('-');
+        let baseDate = new Date(parts[0], parts[1] - 1, parts[2]);
+        let startInfo = getWeekDetails(baseDate);
+        weekMap.set(startInfo.weekKey, startInfo.weekLabel);
+        years.add(startInfo.year);
+      }
     });
 
     const sortedWeeks = Array.from(weekMap.keys()).sort().reverse();
