@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>音樂榜單 Dashboard</title>
+  <title>Öténdimél</title>
   <style>
     :root {
       --primary-color: #007bff;
@@ -198,10 +198,10 @@
       color: #aaa;
     }
 
-    .form-group { margin-bottom: 15px; }
-    label { display: block; font-weight: bold; margin-bottom: 5px; }
+    .form-group { margin-bottom: 12px; }
+    label { display: block; font-weight: bold; margin-bottom: 4px; }
     input[type="text"], input[type="date"], select {
-      width: 100%; padding: 10px; border: 1px solid var(--border-color);
+      width: 100%; padding: 8px 10px; border: 1px solid var(--border-color);
       border-radius: 4px; box-sizing: border-box; font-size: 14px;
     }
 
@@ -263,7 +263,7 @@
 
     .song-table th, .song-table td {
       border: 1px solid var(--border-color);
-      padding: 8px 12px;
+      padding: 10px 12px;
       text-align: left;
     }
 
@@ -273,52 +273,52 @@
 <body>
 
 <div class="container">
-  <h1>🎵 音樂榜單 Dashboard</h1>
+  <h1>✨ Öténdimél 🎧</h1>
 
   <div class="top-actions">
-    <button class="btn btn-success" onclick="exportToTXT()">📤 Export TXT</button>
+    <button class="btn btn-success" onclick="exportToTXT()">📤 匯出榜單</button>
     <input type="file" id="importFile" accept=".txt" style="display:none;" onchange="importFromTXT(event)">
-    <button class="btn btn-secondary" onclick="document.getElementById('importFile').click()">📥 Import TXT</button>
+    <button class="btn btn-secondary" onclick="document.getElementById('importFile').click()">📥 匯入榜單</button>
   </div>
 
   <div class="card">
     <div class="tab-buttons">
-      <button class="tab-btn active" id="tabWeekly" onclick="switchTab('weekly')">📅 週榜單 (Top 50)</button>
-      <button class="tab-btn" id="tabYearly" onclick="switchTab('yearly')">🏆 年榜單</button>
-      <button class="tab-btn" id="tabYearlyChampions" onclick="switchTab('yearlyChampions')">🏆 年榜冠軍歌</button>
-      <button class="tab-btn" id="tabTotal" onclick="switchTab('total')">👑 總累積榜單</button>
+      <button class="tab-btn active" id="tabWeekly" onclick="switchTab('weekly')">📅 每週排行榜</button>
+      <button class="tab-btn" id="tabYearly" onclick="switchTab('yearly')">🏆 年度榜單</button>
+      <button class="tab-btn" id="tabYearlyChampions" onclick="switchTab('yearlyChampions')">👑 冠軍歌</button>
+      <button class="tab-btn" id="tabTotal" onclick="switchTab('total')">🌟 總榜單</button>
       <button class="tab-btn" id="tabSearch" onclick="switchTab('search')">🔍 歌手搜尋</button>
     </div>
 
     <!-- 週榜選擇器 -->
     <div id="weeklySelectorArea" class="form-group" style="max-width: 400px; margin: 0 auto 20px auto;">
-      <label for="weekSelect">選擇週數：</label>
+      <label for="weekSelect">🗓️ 選擇週數：</label>
       <select id="weekSelect" onchange="renderWeeklyChart()"></select>
     </div>
 
     <!-- 年榜選擇器 -->
     <div id="yearlySelectorArea" class="form-group" style="max-width: 400px; margin: 0 auto 20px auto; display:none;">
-      <label for="yearSelect">選擇年份：</label>
+      <label for="yearSelect">📅 選擇年份：</label>
       <select id="yearSelect" onchange="updateYearWeekOptions(); onYearSelectChange();"></select>
       
-      <label for="yearWeekSelect" style="margin-top: 10px;">選擇週數範圍：</label>
+      <label for="yearWeekSelect" style="margin-top: 10px;">📊 選擇週數範圍：</label>
       <select id="yearWeekSelect" onchange="onYearSelectChange()"></select>
     </div>
 
     <!-- 年榜冠軍歌專用選擇器 -->
     <div id="yearlyChampionsSelectorArea" class="form-group" style="max-width: 400px; margin: 0 auto 20px auto; display:none;">
-      <label for="champYearSelect">選擇年份：</label>
+      <label for="champYearSelect">📅 選擇年份：</label>
       <select id="champYearSelect" onchange="renderYearlyChampionsChart()"></select>
     </div>
 
     <!-- 歌手搜尋 -->
     <div id="searchSelectorArea" class="form-group" style="max-width: 400px; margin: 0 auto 20px auto; display:none;">
-      <label for="artistSearchInput">搜尋歌手名稱：</label>
+      <label for="artistSearchInput">🎤 搜尋歌手名稱：</label>
       <input type="text" id="artistSearchInput" placeholder="輸入歌手名字..." oninput="renderArtistSearch()">
     </div>
 
     <div class="chart-header">
-      <h2 id="chartTitle">週榜單 (Top 50)</h2>
+      <h2 id="chartTitle">每週排行榜</h2>
       <p id="chartSubTitle" style="color:#666;"></p>
     </div>
 
@@ -330,11 +330,9 @@
     <table class="song-table">
       <thead>
         <tr>
-          <th>歌曲</th>
-          <th>歌手</th>
-          <th>進榜週</th>
-          <th>在榜週數</th>
-          <th>操作</th>
+          <th>🎵 歌曲與歌手</th>
+          <th>📅 進榜與累積週數</th>
+          <th style="width: 110px;">⚙️ 操作</th>
         </tr>
       </thead>
       <tbody id="songTableBody"></tbody>
@@ -351,33 +349,34 @@
     <form id="songForm">
       <input type="hidden" id="editSongId">
       
-      <div style="display: flex; gap: 15px; flex-wrap: wrap;">
-        <div class="form-group" style="flex: 1; min-width: 200px;">
-          <label for="songTitle">歌曲名稱：</label>
+      <!-- 縮小歌手、歌曲、進榜日期的欄位間距 (gap: 8px, margin-bottom: 8px) -->
+      <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px;">
+        <div class="form-group" style="flex: 1; min-width: 180px; margin-bottom: 0;">
+          <label for="songTitle">🎵 歌曲名稱：</label>
           <input type="text" id="songTitle" required placeholder="例如：再見美瑛">
         </div>
-        <div class="form-group" style="flex: 1; min-width: 200px;">
-          <label for="artistName">歌手名稱：</label>
+        <div class="form-group" style="flex: 1; min-width: 180px; margin-bottom: 0;">
+          <label for="artistName">🎤 歌手名稱：</label>
           <input type="text" id="artistName" required placeholder="例如：馬曼清">
         </div>
-        <div class="form-group" style="flex: 1; min-width: 200px;">
-          <label for="releaseDate">派台/發行日期：</label>
+        <div class="form-group" style="flex: 1; min-width: 180px; margin-bottom: 0;">
+          <label for="releaseDate">📅 派台/發行日期：</label>
           <input type="date" id="releaseDate" required onchange="autoCalculateChartWeeks()">
         </div>
       </div>
 
       <!-- 自動推算進榜週 -->
-      <div class="form-group">
-        <label for="chartWeek">進榜週：</label>
+      <div class="form-group" style="margin-bottom: 12px;">
+        <label for="chartWeek">🚩 進榜週：</label>
         <input type="text" id="chartWeek" class="readonly-input" readonly placeholder="選取派台日期後自動計算">
       </div>
 
-      <label>輸入連續 40 週排名（可留空自動拉 Curve）：</label>
+      <label style="margin-top: 10px; display: block;">📊 排名：</label>
       <div class="weeks-grid" id="weeksInputs"></div>
 
       <div style="text-align: right; margin-top: 15px;">
         <button type="button" class="btn btn-secondary" onclick="closeSongModal()">取消</button>
-        <button type="submit" class="btn btn-primary" id="saveBtn">儲存歌曲榜單</button>
+        <button type="submit" class="btn btn-primary" id="saveBtn">💾 儲存歌曲榜單</button>
       </div>
     </form>
   </div>
@@ -411,29 +410,24 @@
     return 0;
   }
 
-  // 修正後的精準週數計算邏輯 (以週日為每週起始)
   function getWeekDetails(dateObj) {
     let date = new Date(dateObj);
     date.setHours(0,0,0,0);
     
-    let dayOfWeek = date.getDay(); // 0:日, 1:一, ..., 6:六
+    let dayOfWeek = date.getDay();
     
-    // 計算當週星期日
     let sunDate = new Date(date);
     sunDate.setDate(date.getDate() - dayOfWeek);
     sunDate.setHours(0,0,0,0);
 
-    // 計算當週星期六
     let satDate = new Date(sunDate);
     satDate.setDate(sunDate.getDate() + 6);
     satDate.setHours(0,0,0,0);
 
-    // 以週四計算所屬年份
     let thuDate = new Date(sunDate);
     thuDate.setDate(sunDate.getDate() + 4);
     let targetYear = thuDate.getFullYear();
 
-    // 該年 1 月 1 日所在的星期日為第一週起點
     let jan1 = new Date(targetYear, 0, 1);
     let jan1Sun = new Date(jan1);
     jan1Sun.setDate(jan1.getDate() - jan1.getDay());
@@ -659,7 +653,7 @@
     document.getElementById('songForm').reset();
     document.getElementById('editSongId').value = '';
     document.getElementById('formTitle').textContent = '➕ 輸入/編輯歌曲資料';
-    document.getElementById('saveBtn').textContent = '儲存歌曲榜單';
+    document.getElementById('saveBtn').textContent = '💾 儲存歌曲榜單';
     document.getElementById('chartWeek').value = '';
     init40WeeksInputs();
   }
@@ -674,7 +668,7 @@
     document.getElementById('releaseDate').value = song.entryDate;
 
     document.getElementById('formTitle').textContent = '✏️ 編輯歌曲資料';
-    document.getElementById('saveBtn').textContent = '更新歌曲榜單';
+    document.getElementById('saveBtn').textContent = '💾 更新歌曲榜單';
 
     autoCalculateChartWeeks();
     init40WeeksInputs(song);
@@ -692,19 +686,24 @@
     }
   }
 
+  // 已登記歌曲管理：比照排行榜樣式呈現
   function updateSongTable() {
     const tbody = document.getElementById('songTableBody');
     tbody.innerHTML = '';
     songs.forEach(song => {
       tbody.innerHTML += `
         <tr>
-          <td><strong style="color:#dc3545; cursor:pointer;" onclick="editSong('${song.id}')">${song.title}</strong></td>
-          <td>${song.artist}</td>
-          <td><small>${song.startWeekLabel}</small></td>
-          <td>${song.weeklyData.length} 週</td>
           <td>
-            <button class="btn btn-secondary btn-sm" onclick="editSong('${song.id}')">編輯</button>
-            <button class="btn btn-danger btn-sm" onclick="deleteSong('${song.id}')">刪除</button>
+            <div class="song-title" style="cursor:pointer;" onclick="editSong('${song.id}')">${song.title}</div>
+            <div class="artist-name">${song.artist}</div>
+          </td>
+          <td>
+            <div style="font-size:13px; font-weight:bold; color:#007bff;">${song.startWeekLabel}</div>
+            <div style="font-size:12px; color:#666; margin-top:2px;">在榜 ${song.weeklyData.length} 週</div>
+          </td>
+          <td>
+            <button class="btn btn-secondary btn-sm" onclick="editSong('${song.id}')">✏️ 編輯</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteSong('${song.id}')">🗑️ 刪除</button>
           </td>
         </tr>
       `;
@@ -778,19 +777,19 @@
 
     if (tab === 'weekly') {
       document.getElementById('tabWeekly').classList.add('active');
-      document.getElementById('chartTitle').textContent = '週榜單 (Top 50 點數排名)';
+      document.getElementById('chartTitle').textContent = '每週排行榜';
       renderWeeklyChart();
     } else if (tab === 'yearly') {
       document.getElementById('tabYearly').classList.add('active');
-      document.getElementById('chartTitle').textContent = '年度總點數榜單';
+      document.getElementById('chartTitle').textContent = '年度榜單';
       renderYearlyChart();
     } else if (tab === 'yearlyChampions') {
       document.getElementById('tabYearlyChampions').classList.add('active');
-      document.getElementById('chartTitle').textContent = '年度週榜冠軍歌一覽';
+      document.getElementById('chartTitle').textContent = '冠軍歌';
       renderYearlyChampionsChart();
     } else if (tab === 'total') {
       document.getElementById('tabTotal').classList.add('active');
-      document.getElementById('chartTitle').textContent = '歷史累積總點數榜單';
+      document.getElementById('chartTitle').textContent = '總榜單';
       renderTotalChart();
     } else if (tab === 'search') {
       document.getElementById('tabSearch').classList.add('active');
@@ -943,7 +942,7 @@
           <li class="chart-item" onclick="editSong('${champSong.id}')">
             <div class="chart-rank" style="color:#d9534f;">第 ${week} 週</div>
             <div class="chart-info">
-              <div class="song-title">🏆 ${champSong.title}</div>
+              <div class="song-title">👑 ${champSong.title}</div>
               <div class="artist-name">${champSong.artist}</div>
             </div>
             <div class="chart-score">${champWeekData.points} 點</div>
@@ -1038,7 +1037,7 @@
   function exportToTXT() {
     if (songs.length === 0) { alert('現時沒有任何歌曲資料可導出！'); return; }
 
-    let txtContent = "=========================================\n       音樂榜單系統資料備份 (TXT)\n=========================================\n\n";
+    let txtContent = "=========================================\n       Öténdimél 資料備份 (TXT)\n=========================================\n\n";
     songs.forEach((s, idx) => {
       txtContent += `${idx + 1}. 歌曲：${s.title} | 歌手：${s.artist}\n   派台日期：${s.entryDate} (${s.startWeekLabel})\n   週排名紀錄：\n`;
       s.weeklyData.forEach(w => {
@@ -1055,7 +1054,7 @@
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `Chart_Backup_${new Date().toISOString().slice(0,10)}.txt`;
+    a.download = `Otendimel_Backup_${new Date().toISOString().slice(0,10)}.txt`;
     a.click();
     URL.revokeObjectURL(url);
   }
