@@ -405,41 +405,62 @@
     return 0;
   }
 
-  // 完美修正版：精準計算週數與年份標籤
+  // 完美修正版：嚴格按照「全年第一個有4日屬該年」的標準（ISO 8601 邏輯）計算週數
   function getWeekDetails(dateObj) {
     let inputDate = new Date(dateObj);
     inputDate.setHours(0,0,0,0);
     
     let dayOfWeek = inputDate.getDay(); // 0:日, 1:一, 2:二, 3:三, 4:四, 5:五, 6:六
 
-    // 1. 判斷進榜起始週 (星期四至星期日發行，歸入下一週榜單)
+    // 1. 決定該日期所屬榜單的星期日（起始日）與星期六（結束日）
     let chartSunDate = new Date(inputDate);
-    if (dayOfWeek >= 4 || dayOfWeek === 0) {
-      let daysToAdd = (dayOfWeek === 0) ? 7 : (7 - dayOfWeek);
-      chartSunDate.setDate(chartSunDate.getDate() + daysToAdd);
-    } else {
-      chartSunDate.setDate(chartSunDate.getDate() - dayOfWeek);
-    }
+    let diffToSun = dayOfWeek === 0 ? 0 : -dayOfWeek;
+    chartSunDate.setDate(chartSunDate.getDate() + diffToSun);
     chartSunDate.setHours(0,0,0,0);
 
     let chartSatDate = new Date(chartSunDate);
     chartSatDate.setDate(chartSatDate.getDate() + 6);
 
-    // 2. 以該週的中間點（星期三）判定所屬年份
-    let wednesday = new Date(chartSunDate);
-    wednesday.setDate(chartSunDate.getDate() + 3);
-    let targetYear = wednesday.getFullYear();
+    // 2. 計算該週屬於哪一個年份（以該週內的星期四所在的年份為準）
+    let thursday = new Date(chartSunDate);
+    thursday.setDate(chartSunDate.getDate() + 4);
+    let targetYear = thursday.getFullYear();
 
-    // 3. 找出該 targetYear 的「第 1 週星期日」（包含 1/4 的那一週）
+    // 3. 找出該 targetYear 的「第 1 週星期日」
     let jan4 = new Date(targetYear, 0, 4);
+    let jan4DayOfWeek = jan4.getDay();
     let yearW1Sun = new Date(jan4);
-    yearW1Sun.setDate(jan4.getDate() - jan4.getDay());
+    yearW1Sun.setDate(jan4.getDate() - jan4DayOfWeek);
     yearW1Sun.setHours(0,0,0,0);
 
-    // 4. 計算與第 1 週相差幾週
+    // 4. 計算與該年第 1 週星期日相差幾週
     let diffMs = chartSunDate.getTime() - yearW1Sun.getTime();
     let diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
     let weekNum = Math.floor(diffDays / 7) + 1;
+
+    // 跨年邊界修正
+    if (weekNum < 1) {
+      let prevYear = targetYear - 1;
+      let prevJan4 = new Date(prevYear, 0, 4);
+      let prevYearW1Sun = new Date(prevJan4);
+      prevYearW1Sun.setDate(prevJan4.getDate() - prevJan4.getDay());
+      prevYearW1Sun.setHours(0,0,0,0);
+      
+      let prevDiffMs = chartSunDate.getTime() - prevYearW1Sun.getTime();
+      let prevDiffDays = Math.round(prevDiffMs / (1000 * 60 * 60 * 24));
+      weekNum = Math.floor(prevDiffDays / 7) + 1;
+      targetYear = prevYear;
+    } else {
+      let nextJan4 = new Date(targetYear + 1, 0, 4);
+      let nextYearW1Sun = new Date(nextJan4);
+      nextYearW1Sun.setDate(nextJan4.getDate() - nextJan4.getDay());
+      nextYearW1Sun.setHours(0,0,0,0);
+      
+      if (chartSunDate.getTime() >= nextYearW1Sun.getTime()) {
+        targetYear += 1;
+        weekNum = 1;
+      }
+    }
 
     const formatDate = (d) => {
       let mm = String(d.getMonth() + 1).padStart(2, '0');
@@ -728,12 +749,6 @@
     years.add(new Date().getFullYear());
 
     songs.forEach(s => {
-      // 1. 將歌曲本身的所有 weeklyData 加入選單
-      s.weeklyData.forEach(w => {
-        weekMap.set(w.weekKey, w.weekLabel);
-        years.add(w.year);
-      });
-      // 2. 強制確保每首歌的「起始進榜週」一定會被加入選單
       if (s.entryDate) {
         let parts = s.entryDate.split('-');
         let baseDate = new Date(parts[0], parts[1] - 1, parts[2]);
@@ -741,6 +756,10 @@
         weekMap.set(startInfo.weekKey, startInfo.weekLabel);
         years.add(startInfo.year);
       }
+      s.weeklyData.forEach(w => {
+        weekMap.set(w.weekKey, w.weekLabel);
+        years.add(w.year);
+      });
     });
 
     const sortedWeeks = Array.from(weekMap.keys()).sort().reverse();
@@ -1042,7 +1061,7 @@
         <li class="chart-item" onclick="editSong('${song.id}')">
           <div class="chart-rank">#${idx + 1}</div>
           <div class="chart-info">
-            <div class="song-title">${song.title}</div>
+            <div class="song-title">${item.title}</div>
             <div class="artist-name">${song.artist} (在榜 ${song.weeklyData.length} 週)</div>
           </div>
           <div class="chart-score">總點數: ${totalPts} 點</div>
