@@ -3,14 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>音樂榜單管理系統 (Music Chart Tracker)</title>
+  <title>音樂榜單 Dashboard</title>
   <style>
     :root {
-      --primary-color: #d9534f;
+      --primary-color: #007bff;
       --bg-color: #f8f9fa;
       --card-bg: #ffffff;
       --border-color: #e0e0e0;
       --text-main: #333333;
+    }
+
+    * {
+      box-sizing: border-box;
     }
 
     body {
@@ -48,13 +52,14 @@
     }
 
     .btn {
-      background-color: #007bff;
+      background-color: var(--primary-color);
       color: white;
       border: none;
       padding: 10px 18px;
       border-radius: 4px;
       cursor: pointer;
       font-size: 14px;
+      transition: background-color 0.2s;
     }
 
     .btn:hover { opacity: 0.9; }
@@ -75,14 +80,14 @@
       font-size: 14px;
       font-weight: bold;
       border-radius: 30px;
-      border: 2px solid #007bff;
+      border: 2px solid var(--primary-color);
       background: white;
-      color: #007bff;
+      color: var(--primary-color);
       cursor: pointer;
     }
 
     .tab-btn.active {
-      background: #007bff;
+      background: var(--primary-color);
       color: white;
     }
 
@@ -114,7 +119,7 @@
     .chart-rank {
       font-size: 18px;
       font-weight: bold;
-      width: 80px;
+      width: 90px;
       color: #666;
       text-align: center;
       flex-shrink: 0;
@@ -151,7 +156,7 @@
       width: 60px;
       height: 60px;
       border-radius: 50%;
-      background-color: #007bff;
+      background-color: var(--primary-color);
       color: white;
       font-size: 32px;
       border: none;
@@ -285,7 +290,7 @@
       <select id="weekSelect" onchange="renderWeeklyChart()"></select>
     </div>
 
-    <!-- 年榜選擇器（全年度/選週數） -->
+    <!-- 年榜選擇器 -->
     <div id="yearlySelectorArea" class="form-group" style="max-width: 400px; margin: 0 auto 20px auto; display:none;">
       <label for="yearSelect">選擇年份：</label>
       <select id="yearSelect" onchange="updateYearWeekOptions(); onYearSelectChange();"></select>
@@ -294,13 +299,13 @@
       <select id="yearWeekSelect" onchange="onYearSelectChange()"></select>
     </div>
 
-    <!-- 年榜冠軍歌專用年份選擇器 -->
+    <!-- 年榜冠軍歌專用選擇器 -->
     <div id="yearlyChampionsSelectorArea" class="form-group" style="max-width: 400px; margin: 0 auto 20px auto; display:none;">
       <label for="champYearSelect">選擇年份：</label>
       <select id="champYearSelect" onchange="renderYearlyChampionsChart()"></select>
     </div>
 
-    <!-- 歌手搜尋輸入框 -->
+    <!-- 歌手搜尋 -->
     <div id="searchSelectorArea" class="form-group" style="max-width: 400px; margin: 0 auto 20px auto; display:none;">
       <label for="artistSearchInput">搜尋歌手名稱：</label>
       <input type="text" id="artistSearchInput" placeholder="輸入歌手名字..." oninput="renderArtistSearch()">
@@ -395,35 +400,49 @@
     return 0;
   }
 
-  // 完全符合要求的日期演算法 (星期四之後歸下週 + 4天原則/ISO 8601)
+  // 嚴謹不重疊的 ISO 8601 週數計算邏輯
   function getWeekDetails(dateObj) {
     let date = new Date(dateObj);
-    let dayOfWeek = date.getDay(); // 0:日, 1:一, ..., 4:四, 5:五, 6:六
+    date.setHours(0,0,0,0);
     
+    let dayOfWeek = date.getDay(); // 0: 日, 1: 一, ..., 4: 四, 5: 五, 6: 六
+    
+    // 1. 確定榜單週的起始星期日 (星期五/六進榜者推算至下週日)
     let sunDate = new Date(date);
-    if (dayOfWeek >= 5) {
-      // 星期五 (+2) 或 星期六 (+1) -> 推算至下一週日
+    if (dayOfWeek >= 5) { // 5 (五), 6 (六)
       sunDate.setDate(date.getDate() + (7 - dayOfWeek));
     } else {
-      // 星期日 至 星期四 -> 找當週星期日
       sunDate.setDate(date.getDate() - dayOfWeek);
     }
+    sunDate.setHours(0,0,0,0);
 
     let satDate = new Date(sunDate);
     satDate.setDate(sunDate.getDate() + 6);
+    satDate.setHours(0,0,0,0);
 
-    // 以當週星期四判斷該週歸屬的年份 (過半4天原則)
+    // 2. 確定當週歸屬年份 (四天原則：以該週的星期四所在年份為準)
     let thuDate = new Date(sunDate);
     thuDate.setDate(sunDate.getDate() + 4);
+    thuDate.setHours(0,0,0,0);
     let targetYear = thuDate.getFullYear();
 
-    // 找出該年份第 1 週的星期日 (包含 1月4號 的那一週)
+    // 3. 確定該 targetYear 的 Week 1 起始星期日
+    // ISO 規範：包含 1 月 4 日的那一週就是第一週
     let jan4 = new Date(targetYear, 0, 4);
+    jan4.setHours(0,0,0,0);
     let jan4Day = jan4.getDay();
-    let firstSun = new Date(jan4);
-    firstSun.setDate(jan4.getDate() - jan4Day);
 
-    let diffDays = Math.round((sunDate - firstSun) / (24 * 60 * 60 * 1000));
+    let firstSun = new Date(jan4);
+    if (jan4Day >= 5) {
+      firstSun.setDate(jan4.getDate() + (7 - jan4Day));
+    } else {
+      firstSun.setDate(jan4.getDate() - jan4Day);
+    }
+    firstSun.setHours(0,0,0,0);
+
+    // 4. 計算無重疊週數差
+    let diffMs = sunDate.getTime() - firstSun.getTime();
+    let diffDays = Math.round(diffMs / (24 * 60 * 60 * 1000));
     let weekNum = Math.floor(diffDays / 7) + 1;
 
     const formatDate = (d) => {
@@ -691,7 +710,6 @@
     let weekMap = new Map();
     let years = new Set();
 
-    // 預設將今年加入年份清單
     years.add(new Date().getFullYear());
 
     songs.forEach(s => {
@@ -877,7 +895,6 @@
     });
   }
 
-  // 「年度週榜冠軍歌」新顯示邏輯：按第 1 週到第 52 週順序直接顯示
   function renderYearlyChampionsChart() {
     const selectedYear = parseInt(document.getElementById('champYearSelect').value);
     const displayContainer = document.getElementById('chartDisplay');
@@ -890,7 +907,6 @@
 
     document.getElementById('chartSubTitle').textContent = `${selectedYear} 年各週冠軍歌曲一覽表`;
 
-    // 找出該年份中最大的週數 (一般為52或53週)
     let maxWeekNum = 52;
     songs.forEach(s => {
       s.weeklyData.forEach(w => {
@@ -903,7 +919,6 @@
     for (let week = 1; week <= maxWeekNum; week++) {
       let weekKeyStr = `${selectedYear}_W${String(week).padStart(2, '0')}`;
       
-      // 找出該週點數最高 (實際排名 #1) 的歌曲
       let champSong = null;
       let champWeekData = null;
 
