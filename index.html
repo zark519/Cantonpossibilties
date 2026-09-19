@@ -210,15 +210,6 @@
       cursor: not-allowed;
     }
 
-    .effective-box {
-      padding: 10px 15px;
-      background-color: #e8f4f8;
-      border-left: 4px solid #17a2b8;
-      font-weight: bold;
-      border-radius: 4px;
-      margin-bottom: 15px;
-    }
-
     .weeks-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
@@ -375,7 +366,7 @@
         </div>
       </div>
 
-      <!-- 自動推算進榜週（提前一週：即發行日期當週） -->
+      <!-- 自動推算進榜週 -->
       <div class="form-group">
         <label for="chartWeek">進榜週：</label>
         <input type="text" id="chartWeek" class="readonly-input" readonly placeholder="選取派台日期後自動計算">
@@ -420,43 +411,35 @@
     return 0;
   }
 
-  // ISO 8601 週數計算邏輯
+  // 修正後的精準週數計算邏輯 (以週日為每週起始)
   function getWeekDetails(dateObj) {
     let date = new Date(dateObj);
     date.setHours(0,0,0,0);
     
-    let dayOfWeek = date.getDay(); // 0: 日, 1: 一, ..., 4: 四, 5: 五, 6: 六
+    let dayOfWeek = date.getDay(); // 0:日, 1:一, ..., 6:六
     
+    // 計算當週星期日
     let sunDate = new Date(date);
-    if (dayOfWeek >= 5) { // 5 (五), 6 (六) 推算至下週日
-      sunDate.setDate(date.getDate() + (7 - dayOfWeek));
-    } else {
-      sunDate.setDate(date.getDate() - dayOfWeek);
-    }
+    sunDate.setDate(date.getDate() - dayOfWeek);
     sunDate.setHours(0,0,0,0);
 
+    // 計算當週星期六
     let satDate = new Date(sunDate);
     satDate.setDate(sunDate.getDate() + 6);
     satDate.setHours(0,0,0,0);
 
+    // 以週四計算所屬年份
     let thuDate = new Date(sunDate);
     thuDate.setDate(sunDate.getDate() + 4);
-    thuDate.setHours(0,0,0,0);
     let targetYear = thuDate.getFullYear();
 
-    let jan4 = new Date(targetYear, 0, 4);
-    jan4.setHours(0,0,0,0);
-    let jan4Day = jan4.getDay();
+    // 該年 1 月 1 日所在的星期日為第一週起點
+    let jan1 = new Date(targetYear, 0, 1);
+    let jan1Sun = new Date(jan1);
+    jan1Sun.setDate(jan1.getDate() - jan1.getDay());
+    jan1Sun.setHours(0,0,0,0);
 
-    let firstSun = new Date(jan4);
-    if (jan4Day >= 5) {
-      firstSun.setDate(jan4.getDate() + (7 - jan4Day));
-    } else {
-      firstSun.setDate(jan4.getDate() - jan4Day);
-    }
-    firstSun.setHours(0,0,0,0);
-
-    let diffMs = sunDate.getTime() - firstSun.getTime();
+    let diffMs = sunDate.getTime() - jan1Sun.getTime();
     let diffDays = Math.round(diffMs / (24 * 60 * 60 * 1000));
     let weekNum = Math.floor(diffDays / 7) + 1;
 
@@ -470,10 +453,9 @@
     const weekLabel = `${targetYear}年 第${weekNum}週 (${formatDate(sunDate)} - ${formatDate(satDate)})`;
     const weekKey = `${targetYear}_W${String(weekNum).padStart(2, '0')}`;
 
-    return { year: targetYear, weekNum, weekLabel, weekKey, satDate, sunDate };
+    return { year: targetYear, weekNum, weekLabel, weekKey, startDate: sunDate, endDate: satDate };
   }
 
-  // 選取發行日期後自動推算進榜週（提前一週，即當週）
   function autoCalculateChartWeeks() {
     const val = document.getElementById('releaseDate').value;
     if (!val) return;
@@ -582,7 +564,7 @@
     let startWeekInfo = getWeekDetails(baseDate);
 
     let weeklyData = [];
-    let currentSat = new Date(startWeekInfo.satDate);
+    let currentSun = new Date(startWeekInfo.startDate);
 
     let existingSong = songs.find(s => s.id === editId);
 
@@ -597,7 +579,7 @@
           : (Math.random() * 10 - 5);
 
         let finalPoints = Math.round((basePts + randomOffset) * 10) / 10;
-        let weekInfo = getWeekDetails(currentSat);
+        let weekInfo = getWeekDetails(currentSun);
 
         weeklyData.push({
           weekIndex: i + 1,
@@ -612,7 +594,7 @@
           actualRank: null
         });
       }
-      currentSat.setDate(currentSat.getDate() + 7);
+      currentSun.setDate(currentSun.getDate() + 7);
     }
 
     const songObj = {
@@ -637,7 +619,6 @@
     renderCurrentTab();
   };
 
-  // 重新計算所有歌曲的實際排名及將進榜時間統一調整為派台當週（提前一週）
   function recalculateAllActualRanks() {
     let weekKeys = new Set();
     
@@ -647,18 +628,16 @@
 
       s.startWeekKey = startWeekInfo.weekKey;
       s.startWeekLabel = startWeekInfo.weekLabel;
-      delete s.estimatedChartWeek;
-      delete s.actualChartWeek;
 
-      let currentSat = new Date(startWeekInfo.satDate);
+      let currentSun = new Date(startWeekInfo.startDate);
       s.weeklyData.forEach(w => {
-        let weekInfo = getWeekDetails(currentSat);
+        let weekInfo = getWeekDetails(currentSun);
         w.weekKey = weekInfo.weekKey;
         w.weekLabel = weekInfo.weekLabel;
         w.year = weekInfo.year;
         w.weekNum = weekInfo.weekNum;
         weekKeys.add(w.weekKey);
-        currentSat.setDate(currentSat.getDate() + 7);
+        currentSun.setDate(currentSun.getDate() + 7);
       });
     });
 
