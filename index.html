@@ -205,11 +205,6 @@
       border-radius: 4px; box-sizing: border-box; font-size: 14px;
     }
 
-    .input-row {
-      display: flex;
-      gap: 10px;
-    }
-
     .readonly-input {
       background-color: #e9ecef;
       cursor: not-allowed;
@@ -346,7 +341,7 @@
         <tr>
           <th>歌曲</th>
           <th>歌手</th>
-          <th>採計進榜週</th>
+          <th>進榜週</th>
           <th>在榜週數</th>
           <th>操作</th>
         </tr>
@@ -380,30 +375,10 @@
         </div>
       </div>
 
-      <!-- 進榜週數計算與 Override 區塊 -->
-      <div style="display: flex; gap: 15px; flex-wrap: wrap;">
-        <!-- 預計進榜週 -->
-        <div class="form-group" style="flex: 1; min-width: 260px;">
-          <label for="estimatedChartWeek">預計進榜週：</label>
-          <div class="input-row">
-            <input type="text" id="estimatedChartWeek" class="readonly-input" readonly placeholder="例如：2026年 第1週" oninput="updateEffectiveDisplay()">
-            <button type="button" class="btn btn-secondary btn-sm" style="white-space:nowrap;" onclick="enableOverride('estimatedChartWeek')">Open Override</button>
-          </div>
-          <small style="color:#6c757d;">(選取日期後自動計算，可點擊解鎖修改)</small>
-        </div>
-
-        <!-- 實際進榜週 -->
-        <div class="form-group" style="flex: 1; min-width: 260px;">
-          <label for="actualChartWeek">實際進榜週：</label>
-          <div class="input-row">
-            <input type="text" id="actualChartWeek" placeholder="預設為預計+1週" oninput="onActualChartWeekInput()">
-          </div>
-          <small style="color:#6c757d;">(如有輸入，系統將按實際開始計)</small>
-        </div>
-      </div>
-
-      <div class="effective-box">
-        最終採計進榜週：<span id="effectiveWeekDisplay" style="color:#007bff;">未計算</span>
+      <!-- 自動推算進榜週（提前一週：即發行日期當週） -->
+      <div class="form-group">
+        <label for="chartWeek">進榜週：</label>
+        <input type="text" id="chartWeek" class="readonly-input" readonly placeholder="選取派台日期後自動計算">
       </div>
 
       <label>輸入連續 40 週排名（可留空自動拉 Curve）：</label>
@@ -420,9 +395,6 @@
 <script>
   let songs = JSON.parse(localStorage.getItem('chart_songs') || '[]');
   let currentTab = 'weekly';
-
-  let isEstimatedOverridden = false;
-  let isActualOverridden = false;
 
   const BASE_POINTS = [
     { rank: 1,  pts: 290 }, { rank: 2,  pts: 270 }, { rank: 3,  pts: 254 },
@@ -448,7 +420,7 @@
     return 0;
   }
 
-  // 嚴謹不重疊的 ISO 8601 週數計算邏輯
+  // ISO 8601 週數計算邏輯
   function getWeekDetails(dateObj) {
     let date = new Date(dateObj);
     date.setHours(0,0,0,0);
@@ -501,74 +473,19 @@
     return { year: targetYear, weekNum, weekLabel, weekKey, satDate, sunDate };
   }
 
-  // 1. 選取日期後自動計算進榜週
+  // 選取發行日期後自動推算進榜週（提前一週，即當週）
   function autoCalculateChartWeeks() {
     const val = document.getElementById('releaseDate').value;
     if (!val) return;
 
     const relDate = new Date(val);
-    const estWeekInfo = getWeekDetails(relDate);
-
-    if (!isEstimatedOverridden) {
-      document.getElementById('estimatedChartWeek').value = estWeekInfo.weekLabel;
-    }
-
-    if (!isActualOverridden) {
-      let nextWeekDate = new Date(estWeekInfo.satDate);
-      nextWeekDate.setDate(nextWeekDate.getDate() + 1); // 推算至下一週日
-      const actWeekInfo = getWeekDetails(nextWeekDate);
-      document.getElementById('actualChartWeek').value = actWeekInfo.weekLabel;
-    }
-
-    updateEffectiveDisplay();
-  }
-
-  // 2. 手動解鎖 Open Override 預計進榜週
-  function enableOverride(fieldId) {
-    const input = document.getElementById(fieldId);
-    input.removeAttribute('readonly');
-    input.classList.remove('readonly-input');
-    input.focus();
-    if (fieldId === 'estimatedChartWeek') isEstimatedOverridden = true;
-  }
-
-  // 3. 監聽實際進榜週輸入
-  function onActualChartWeekInput() {
-    const val = document.getElementById('actualChartWeek').value.trim();
-    isActualOverridden = val !== '';
-    if (!isActualOverridden) autoCalculateChartWeeks();
-    updateEffectiveDisplay();
-  }
-
-  // 4. 更新最終採計顯示（按實際優先）
-  function updateEffectiveDisplay() {
-    const actual = document.getElementById('actualChartWeek').value.trim();
-    const estimated = document.getElementById('estimatedChartWeek').value.trim();
-    const effective = actual !== '' ? actual : estimated;
-    document.getElementById('effectiveWeekDisplay').textContent = effective || '未計算';
-  }
-
-  // 獲取有效基準日期
-  function getEffectiveStartDate() {
-    const relDateVal = document.getElementById('releaseDate').value;
-    if (!relDateVal) return new Date();
-
-    let baseDate = new Date(relDateVal);
-    let estWeekInfo = getWeekDetails(baseDate);
-
-    const actualVal = document.getElementById('actualChartWeek').value.trim();
-    if (actualVal !== '') {
-      // 如果手動修改過實際進榜週，或採用預設 (+1週)
-      let nextSat = new Date(estWeekInfo.satDate);
-      nextSat.setDate(nextSat.getDate() + 7);
-      return nextSat;
-    } else {
-      return estWeekInfo.sunDate;
-    }
+    const weekInfo = getWeekDetails(relDate);
+    document.getElementById('chartWeek').value = weekInfo.weekLabel;
   }
 
   window.onload = function() {
     recalculateAllActualRanks();
+    saveSongs();
     updateSongTable();
     updateWeekSelectOptions();
     renderWeeklyChart();
@@ -647,8 +564,7 @@
     const title = document.getElementById('songTitle').value.trim();
     const artist = document.getElementById('artistName').value.trim();
     const releaseDateVal = document.getElementById('releaseDate').value;
-    const estimatedChartWeek = document.getElementById('estimatedChartWeek').value.trim();
-    const actualChartWeek = document.getElementById('actualChartWeek').value.trim();
+    const chartWeek = document.getElementById('chartWeek').value.trim();
     const editId = document.getElementById('editSongId').value;
 
     if (!title || !artist || !releaseDateVal) return;
@@ -662,8 +578,8 @@
 
     let finalRanks = autoInterpolateRanks(rawRanks);
 
-    let effectiveStartDate = getEffectiveStartDate();
-    let startWeekInfo = getWeekDetails(effectiveStartDate);
+    let baseDate = new Date(releaseDateVal);
+    let startWeekInfo = getWeekDetails(baseDate);
 
     let weeklyData = [];
     let currentSat = new Date(startWeekInfo.satDate);
@@ -699,15 +615,11 @@
       currentSat.setDate(currentSat.getDate() + 7);
     }
 
-    const effectiveWeekLabel = actualChartWeek !== '' ? actualChartWeek : estimatedChartWeek;
-
     const songObj = {
       id: editId ? editId : Date.now().toString(),
       title, artist, entryDate: releaseDateVal,
-      estimatedChartWeek,
-      actualChartWeek,
       startWeekKey: startWeekInfo.weekKey,
-      startWeekLabel: effectiveWeekLabel,
+      startWeekLabel: chartWeek,
       weeklyData
     };
 
@@ -725,19 +637,18 @@
     renderCurrentTab();
   };
 
+  // 重新計算所有歌曲的實際排名及將進榜時間統一調整為派台當週（提前一週）
   function recalculateAllActualRanks() {
     let weekKeys = new Set();
     
     songs.forEach(s => {
       let baseDate = new Date(s.entryDate);
-      let estWeekInfo = getWeekDetails(baseDate);
+      let startWeekInfo = getWeekDetails(baseDate);
 
-      let startDate = (s.actualChartWeek && s.actualChartWeek.trim() !== '') 
-        ? new Date(estWeekInfo.satDate.getTime() + 7 * 24 * 60 * 60 * 1000)
-        : estWeekInfo.sunDate;
-
-      let startWeekInfo = getWeekDetails(startDate);
       s.startWeekKey = startWeekInfo.weekKey;
+      s.startWeekLabel = startWeekInfo.weekLabel;
+      delete s.estimatedChartWeek;
+      delete s.actualChartWeek;
 
       let currentSat = new Date(startWeekInfo.satDate);
       s.weeklyData.forEach(w => {
@@ -770,14 +681,7 @@
     document.getElementById('editSongId').value = '';
     document.getElementById('formTitle').textContent = '➕ 輸入/編輯歌曲資料';
     document.getElementById('saveBtn').textContent = '儲存歌曲榜單';
-    
-    document.getElementById('estimatedChartWeek').classList.add('readonly-input');
-    document.getElementById('estimatedChartWeek').setAttribute('readonly', true);
-    
-    isEstimatedOverridden = false;
-    isActualOverridden = false;
-    
-    document.getElementById('effectiveWeekDisplay').textContent = '未計算';
+    document.getElementById('chartWeek').value = '';
     init40WeeksInputs();
   }
 
@@ -789,11 +693,6 @@
     document.getElementById('songTitle').value = song.title;
     document.getElementById('artistName').value = song.artist;
     document.getElementById('releaseDate').value = song.entryDate;
-    document.getElementById('estimatedChartWeek').value = song.estimatedChartWeek || '';
-    document.getElementById('actualChartWeek').value = song.actualChartWeek || '';
-
-    isEstimatedOverridden = false;
-    isActualOverridden = song.actualChartWeek ? true : false;
 
     document.getElementById('formTitle').textContent = '✏️ 編輯歌曲資料';
     document.getElementById('saveBtn').textContent = '更新歌曲榜單';
