@@ -64,6 +64,7 @@
     .btn-danger { background-color: #dc3545; }
     .btn-success { background-color: #28a745; }
     .btn-secondary { background-color: #6c757d; }
+    .btn-warning { background-color: #ffc107; color: #212529; }
     .btn-sm { padding: 6px 10px; font-size: 12px; }
 
     .tab-buttons {
@@ -369,7 +370,8 @@
       <label style="margin-top: 10px; display: block;">📊 排名：</label>
       <div class="weeks-grid" id="weeksInputs"></div>
 
-      <div style="text-align: right; margin-top: 15px;">
+      <div style="text-align: right; margin-top: 15px; display: flex; justify-content: flex-end; gap: 8px;">
+        <button type="button" class="btn btn-warning" onclick="resetForm()">🔄 重設</button>
         <button type="button" class="btn btn-secondary" onclick="closeSongModal()">取消</button>
         <button type="submit" class="btn btn-primary" id="saveBtn">💾 儲存歌曲榜單</button>
       </div>
@@ -405,14 +407,13 @@
     return 0;
   }
 
-  // 完美修正版：嚴格按照「全年第一個有4日屬該年」的標準（ISO 8601 邏輯）計算週數
+  // ISO 8601 標準週數計算（全年第一個有最少 4 日屬該年）
   function getWeekDetails(dateObj) {
     let inputDate = new Date(dateObj);
     inputDate.setHours(0,0,0,0);
     
-    let dayOfWeek = inputDate.getDay(); // 0:日, 1:一, 2:二, 3:三, 4:四, 5:五, 6:六
+    let dayOfWeek = inputDate.getDay(); 
 
-    // 1. 決定該日期所屬榜單的星期日（起始日）與星期六（結束日）
     let chartSunDate = new Date(inputDate);
     let diffToSun = dayOfWeek === 0 ? 0 : -dayOfWeek;
     chartSunDate.setDate(chartSunDate.getDate() + diffToSun);
@@ -421,24 +422,20 @@
     let chartSatDate = new Date(chartSunDate);
     chartSatDate.setDate(chartSatDate.getDate() + 6);
 
-    // 2. 計算該週屬於哪一個年份（以該週內的星期四所在的年份為準）
     let thursday = new Date(chartSunDate);
     thursday.setDate(chartSunDate.getDate() + 4);
     let targetYear = thursday.getFullYear();
 
-    // 3. 找出該 targetYear 的「第 1 週星期日」
     let jan4 = new Date(targetYear, 0, 4);
     let jan4DayOfWeek = jan4.getDay();
     let yearW1Sun = new Date(jan4);
     yearW1Sun.setDate(jan4.getDate() - jan4DayOfWeek);
     yearW1Sun.setHours(0,0,0,0);
 
-    // 4. 計算與該年第 1 週星期日相差幾週
     let diffMs = chartSunDate.getTime() - yearW1Sun.getTime();
     let diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
     let weekNum = Math.floor(diffDays / 7) + 1;
 
-    // 跨年邊界修正
     if (weekNum < 1) {
       let prevYear = targetYear - 1;
       let prevJan4 = new Date(prevYear, 0, 4);
@@ -1061,7 +1058,7 @@
         <li class="chart-item" onclick="editSong('${song.id}')">
           <div class="chart-rank">#${idx + 1}</div>
           <div class="chart-info">
-            <div class="song-title">${item.title}</div>
+            <div class="song-title">${song.title}</div>
             <div class="artist-name">${song.artist} (在榜 ${song.weeklyData.length} 週)</div>
           </div>
           <div class="chart-score">總點數: ${totalPts} 點</div>
