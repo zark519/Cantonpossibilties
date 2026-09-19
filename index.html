@@ -349,7 +349,6 @@
     <form id="songForm">
       <input type="hidden" id="editSongId">
       
-      <!-- 縮小歌手、歌曲、進榜日期的欄位間距 (gap: 8px, margin-bottom: 8px) -->
       <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px;">
         <div class="form-group" style="flex: 1; min-width: 180px; margin-bottom: 0;">
           <label for="songTitle">🎵 歌曲名稱：</label>
@@ -410,32 +409,69 @@
     return 0;
   }
 
+  // 修正後的週數與進榜邏輯
   function getWeekDetails(dateObj) {
-    let date = new Date(dateObj);
-    date.setHours(0,0,0,0);
+    let inputDate = new Date(dateObj);
+    inputDate.setHours(0,0,0,0);
     
-    let dayOfWeek = date.getDay();
-    
-    let sunDate = new Date(date);
-    sunDate.setDate(date.getDate() - dayOfWeek);
-    sunDate.setHours(0,0,0,0);
+    let dayOfWeek = inputDate.getDay(); // 0:日, 1:一, 2:二, 3:三, 4:四, 5:五, 6:六
 
-    let satDate = new Date(sunDate);
-    satDate.setDate(sunDate.getDate() + 6);
-    satDate.setHours(0,0,0,0);
+    // 1. 判斷進榜起始週 (星期四至星期日發行，歸入下一週榜單)
+    let chartSunDate = new Date(inputDate);
+    if (dayOfWeek >= 4 || dayOfWeek === 0) {
+      let daysToAdd = (dayOfWeek === 0) ? 7 : (7 - dayOfWeek);
+      chartSunDate.setDate(chartSunDate.getDate() + daysToAdd);
+    } else {
+      chartSunDate.setDate(chartSunDate.getDate() - dayOfWeek);
+    }
+    chartSunDate.setHours(0,0,0,0);
 
-    let thuDate = new Date(sunDate);
-    thuDate.setDate(sunDate.getDate() + 4);
-    let targetYear = thuDate.getFullYear();
+    let chartSatDate = new Date(chartSunDate);
+    chartSatDate.setDate(chartSunDate.getDate() + 6);
+    chartSatDate.setHours(0,0,0,0);
 
+    // 2. 判定該週所屬年份 (根據 4 天規則 / 星期三落在食邊個年份)
+    let wednesday = new Date(chartSunDate);
+    wednesday.setDate(chartSunDate.getDate() + 3);
+    let targetYear = wednesday.getFullYear();
+
+    // 3. 計算該年份的第 1 週 (第一個包含星期三的星期日)
     let jan1 = new Date(targetYear, 0, 1);
-    let jan1Sun = new Date(jan1);
-    jan1Sun.setDate(jan1.getDate() - jan1.getDay());
-    jan1Sun.setHours(0,0,0,0);
+    let jan1Day = jan1.getDay();
+    let yearW1Sun = new Date(jan1);
+    
+    // 若 1月1日 係 星期一/二/三/四，第1週包含了上一年的 12 月底
+    // 若 1月1日 係 星期五/六/日，第1週要由下個星期日開始
+    if (jan1Day <= 4 && jan1Day > 0) {
+      yearW1Sun.setDate(jan1.getDate() - jan1Day);
+    } else if (jan1Day > 4) {
+      yearW1Sun.setDate(jan1.getDate() + (7 - jan1Day));
+    } else {
+      // jan1Day === 0 (星期日)
+      yearW1Sun.setDate(jan1.getDate());
+    }
+    yearW1Sun.setHours(0,0,0,0);
 
-    let diffMs = sunDate.getTime() - jan1Sun.getTime();
+    let diffMs = chartSunDate.getTime() - yearW1Sun.getTime();
     let diffDays = Math.round(diffMs / (24 * 60 * 60 * 1000));
     let weekNum = Math.floor(diffDays / 7) + 1;
+
+    // 若算出來的 weekNum <= 0，代表此週屬於上一年的最後一週
+    if (weekNum <= 0) {
+      targetYear -= 1;
+      let prevJan1 = new Date(targetYear, 0, 1);
+      let prevJan1Day = prevJan1.getDay();
+      let prevYearW1Sun = new Date(prevJan1);
+      if (prevJan1Day <= 4 && prevJan1Day > 0) {
+        prevYearW1Sun.setDate(prevJan1.getDate() - prevJan1Day);
+      } else if (prevJan1Day > 4) {
+        prevYearW1Sun.setDate(prevJan1.getDate() + (7 - prevJan1Day));
+      }
+      prevYearW1Sun.setHours(0,0,0,0);
+      let prevDiffMs = chartSunDate.getTime() - prevYearW1Sun.getTime();
+      let prevDiffDays = Math.round(prevDiffMs / (24 * 60 * 60 * 1000));
+      weekNum = Math.floor(prevDiffDays / 7) + 1;
+    }
 
     const formatDate = (d) => {
       let mm = String(d.getMonth() + 1).padStart(2, '0');
@@ -444,17 +480,19 @@
       return `${mm}/${dd}/${yyyy}`;
     };
 
-    const weekLabel = `${targetYear}年 第${weekNum}週 (${formatDate(sunDate)} - ${formatDate(satDate)})`;
+    const weekLabel = `${targetYear}年 第${weekNum}週 (${formatDate(chartSunDate)} - ${formatDate(chartSatDate)})`;
     const weekKey = `${targetYear}_W${String(weekNum).padStart(2, '0')}`;
 
-    return { year: targetYear, weekNum, weekLabel, weekKey, startDate: sunDate, endDate: satDate };
+    return { year: targetYear, weekNum, weekLabel, weekKey, startDate: chartSunDate, endDate: chartSatDate };
   }
 
   function autoCalculateChartWeeks() {
     const val = document.getElementById('releaseDate').value;
     if (!val) return;
 
-    const relDate = new Date(val);
+    // input[type="date"] 格式為 YYYY-MM-DD
+    const parts = val.split('-');
+    const relDate = new Date(parts[0], parts[1] - 1, parts[2]);
     const weekInfo = getWeekDetails(relDate);
     document.getElementById('chartWeek').value = weekInfo.weekLabel;
   }
@@ -554,7 +592,8 @@
 
     let finalRanks = autoInterpolateRanks(rawRanks);
 
-    let baseDate = new Date(releaseDateVal);
+    const parts = releaseDateVal.split('-');
+    let baseDate = new Date(parts[0], parts[1] - 1, parts[2]);
     let startWeekInfo = getWeekDetails(baseDate);
 
     let weeklyData = [];
@@ -617,7 +656,8 @@
     let weekKeys = new Set();
     
     songs.forEach(s => {
-      let baseDate = new Date(s.entryDate);
+      const parts = s.entryDate.split('-');
+      let baseDate = new Date(parts[0], parts[1] - 1, parts[2]);
       let startWeekInfo = getWeekDetails(baseDate);
 
       s.startWeekKey = startWeekInfo.weekKey;
@@ -686,7 +726,6 @@
     }
   }
 
-  // 已登記歌曲管理：比照排行榜樣式呈現
   function updateSongTable() {
     const tbody = document.getElementById('songTableBody');
     tbody.innerHTML = '';
