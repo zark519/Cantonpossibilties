@@ -405,7 +405,7 @@
     return 0;
   }
 
-  // 精準 4 天規則 (ISO-8601 風格, 星期日為一週第一天) 計算函數
+  // 完美修正版：精準計算週數與年份標籤
   function getWeekDetails(dateObj) {
     let inputDate = new Date(dateObj);
     inputDate.setHours(0,0,0,0);
@@ -424,30 +424,21 @@
 
     let chartSatDate = new Date(chartSunDate);
     chartSatDate.setDate(chartSunDate.getDate() + 6);
-    chartSatDate.setHours(0,0,0,0);
 
-    // 2. 判斷該週（日～六）屬於哪一年：以該週的星期三落入的年份為準（確保包含4天或以上）
+    // 2. 以該週的中間點（星期三）判定所屬年份
     let wednesday = new Date(chartSunDate);
     wednesday.setDate(chartSunDate.getDate() + 3);
     let targetYear = wednesday.getFullYear();
 
-    // 3. 計算 targetYear 的「第 1 週的星期日 Date」
-    let jan1 = new Date(targetYear, 0, 1);
-    let jan1Day = jan1.getDay(); // 0:日, 1:一, 2:二, 3:三, 4:四, 5:五, 6:六
-    let yearW1Sun = new Date(jan1);
-
-    if (jan1Day === 0) {
-      yearW1Sun.setDate(1);
-    } else if (jan1Day <= 3) {
-      yearW1Sun.setDate(1 - jan1Day);
-    } else {
-      yearW1Sun.setDate(1 + (7 - jan1Day));
-    }
+    // 3. 找出該 targetYear 的「第 1 週星期日」（包含 1/4 的那一週）
+    let jan4 = new Date(targetYear, 0, 4);
+    let yearW1Sun = new Date(jan4);
+    yearW1Sun.setDate(jan4.getDate() - jan4.getDay());
     yearW1Sun.setHours(0,0,0,0);
 
-    // 4. 計算與第 1 週相差的天數，算出第幾週
+    // 4. 計算與第 1 週相差幾週
     let diffMs = chartSunDate.getTime() - yearW1Sun.getTime();
-    let diffDays = Math.round(diffMs / (24 * 60 * 60 * 1000));
+    let diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
     let weekNum = Math.floor(diffDays / 7) + 1;
 
     const formatDate = (d) => {
@@ -628,7 +619,6 @@
     renderCurrentTab();
   };
 
-  // 全量重新計算所有歌曲的每週細節 (包含舊資料的強制重刷)
   function recalculateAllActualRanks() {
     let weekKeys = new Set();
     
@@ -637,12 +627,10 @@
       const parts = s.entryDate.split('-');
       let baseDate = new Date(parts[0], parts[1] - 1, parts[2]);
       
-      // 1. 重新推算正確的進榜起始週
       let startWeekInfo = getWeekDetails(baseDate);
       s.startWeekKey = startWeekInfo.weekKey;
       s.startWeekLabel = startWeekInfo.weekLabel;
 
-      // 2. 強制重刷新每一週的 weekKey 與 weekLabel
       let currentSun = new Date(startWeekInfo.startDate);
       s.weeklyData.forEach(w => {
         let weekInfo = getWeekDetails(currentSun);
@@ -652,11 +640,10 @@
         w.weekNum = weekInfo.weekNum;
         
         weekKeys.add(w.weekKey);
-        currentSun.setDate(currentSun.getDate() + 7); // 推進 7 天至下一週
+        currentSun.setDate(currentSun.getDate() + 7);
       });
     });
 
-    // 3. 重新計算每週的實際排名 (Actual Rank)
     weekKeys.forEach(wKey => {
       let weekEntries = [];
       songs.forEach(s => {
