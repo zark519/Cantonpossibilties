@@ -13,9 +13,7 @@
       --text-main: #333333;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -113,9 +111,7 @@
       transition: background 0.2s;
     }
 
-    .chart-item:hover {
-      background: #f1f3f5;
-    }
+    .chart-item:hover { background: #f1f3f5; }
 
     .chart-rank {
       font-size: 18px;
@@ -409,7 +405,7 @@
     return 0;
   }
 
-  // 修正後的週數與進榜邏輯
+  // 精準 4 天規則 (ISO-8601 風格, 星期日為一週第一天) 計算函數
   function getWeekDetails(dateObj) {
     let inputDate = new Date(dateObj);
     inputDate.setHours(0,0,0,0);
@@ -430,48 +426,32 @@
     chartSatDate.setDate(chartSunDate.getDate() + 6);
     chartSatDate.setHours(0,0,0,0);
 
-    // 2. 判定該週所屬年份 (根據 4 天規則 / 星期三落在食邊個年份)
+    // 2. 判斷該週（日～六）屬於哪一年：以該週的星期三落入的年份為準（確保包含4天或以上）
     let wednesday = new Date(chartSunDate);
     wednesday.setDate(chartSunDate.getDate() + 3);
     let targetYear = wednesday.getFullYear();
 
-    // 3. 計算該年份的第 1 週 (第一個包含星期三的星期日)
+    // 3. 計算 targetYear 的「第 1 週的星期日 Date」
+    // 尋找 targetYear 第一個包含星期三的星期日
     let jan1 = new Date(targetYear, 0, 1);
-    let jan1Day = jan1.getDay();
+    let jan1Day = jan1.getDay(); // 0:日, 1:一, 2:二, 3:三, 4:四, 5:五, 6:六
     let yearW1Sun = new Date(jan1);
-    
-    // 若 1月1日 係 星期一/二/三/四，第1週包含了上一年的 12 月底
-    // 若 1月1日 係 星期五/六/日，第1週要由下個星期日開始
-    if (jan1Day <= 4 && jan1Day > 0) {
-      yearW1Sun.setDate(jan1.getDate() - jan1Day);
-    } else if (jan1Day > 4) {
-      yearW1Sun.setDate(jan1.getDate() + (7 - jan1Day));
+
+    // 如果 1/1 是 日/一/二/三，該週在 1月 佔 4天或以上 ➡️ 該週的星期日即為 W1 起始日
+    // 如果 1/1 是 四/五/六，該週在 1月 不足 4天 ➡️ 下一個星期日才是 W1 起始日
+    if (jan1Day === 0) {
+      yearW1Sun.setDate(1);
+    } else if (jan1Day <= 3) {
+      yearW1Sun.setDate(1 - jan1Day);
     } else {
-      // jan1Day === 0 (星期日)
-      yearW1Sun.setDate(jan1.getDate());
+      yearW1Sun.setDate(1 + (7 - jan1Day));
     }
     yearW1Sun.setHours(0,0,0,0);
 
+    // 4. 計算與第 1 週相差的天數，算出第幾週
     let diffMs = chartSunDate.getTime() - yearW1Sun.getTime();
     let diffDays = Math.round(diffMs / (24 * 60 * 60 * 1000));
     let weekNum = Math.floor(diffDays / 7) + 1;
-
-    // 若算出來的 weekNum <= 0，代表此週屬於上一年的最後一週
-    if (weekNum <= 0) {
-      targetYear -= 1;
-      let prevJan1 = new Date(targetYear, 0, 1);
-      let prevJan1Day = prevJan1.getDay();
-      let prevYearW1Sun = new Date(prevJan1);
-      if (prevJan1Day <= 4 && prevJan1Day > 0) {
-        prevYearW1Sun.setDate(prevJan1.getDate() - prevJan1Day);
-      } else if (prevJan1Day > 4) {
-        prevYearW1Sun.setDate(prevJan1.getDate() + (7 - prevJan1Day));
-      }
-      prevYearW1Sun.setHours(0,0,0,0);
-      let prevDiffMs = chartSunDate.getTime() - prevYearW1Sun.getTime();
-      let prevDiffDays = Math.round(prevDiffMs / (24 * 60 * 60 * 1000));
-      weekNum = Math.floor(prevDiffDays / 7) + 1;
-    }
 
     const formatDate = (d) => {
       let mm = String(d.getMonth() + 1).padStart(2, '0');
@@ -490,7 +470,6 @@
     const val = document.getElementById('releaseDate').value;
     if (!val) return;
 
-    // input[type="date"] 格式為 YYYY-MM-DD
     const parts = val.split('-');
     const relDate = new Date(parts[0], parts[1] - 1, parts[2]);
     const weekInfo = getWeekDetails(relDate);
