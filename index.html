@@ -491,7 +491,6 @@
   };
 
   function openSongModal() {
-    // 點擊「+」新增時：完全重設所有欄位（包括歌名、歌手、日期、ID等）
     document.getElementById('songForm').reset();
     document.getElementById('editSongId').value = '';
     document.getElementById('formTitle').textContent = '➕ 輸入/編輯歌曲資料';
@@ -688,7 +687,6 @@
   function saveSongs() { localStorage.setItem('chart_songs', JSON.stringify(songs)); }
 
   function resetForm() {
-    // 點擊表單內的「🔄 重設」按鈕：僅清除 40 週排名輸入框與預覽值，完整保留歌名、歌手、日期
     const inputs = document.querySelectorAll('.rank-input');
     inputs.forEach(input => input.value = '');
     for (let i = 1; i <= 40; i++) {
@@ -775,14 +773,19 @@
 
     const sortedWeeks = Array.from(weekMap.keys()).sort().reverse();
     weekSelect.innerHTML = '';
-    sortedWeeks.forEach(key => weekSelect.innerHTML += `<option value="${key}">${weekMap.get(key)}</option>`);
+    // Amendment Requirement: Default 係最新用份而唔係全部月份 (將第一項或最新一項設為預設選取)
+    sortedWeeks.forEach((key, index) => {
+      let selectedAttr = (index === 0) ? ' selected' : '';
+      weekSelect.innerHTML += `<option value="${key}"${selectedAttr}>${weekMap.get(key)}</option>`;
+    });
 
     const sortedYears = Array.from(years).sort().reverse();
     yearSelect.innerHTML = '';
     champYearSelect.innerHTML = '';
-    sortedYears.forEach(y => {
-      yearSelect.innerHTML += `<option value="${y}">${y} 年</option>`;
-      champYearSelect.innerHTML += `<option value="${y}">${y} 年</option>`;
+    sortedYears.forEach((y, index) => {
+      let selectedAttr = (index === 0) ? ' selected' : '';
+      yearSelect.innerHTML += `<option value="${y}"${selectedAttr}>${y} 年</option>`;
+      champYearSelect.innerHTML += `<option value="${y}"${selectedAttr}>${y} 年</option>`;
     });
 
     updateYearWeekOptions();
@@ -1125,7 +1128,7 @@
 
         if (Array.isArray(importedSongs)) {
           if (confirm(`警告：匯入新數據將會【取代 / 覆蓋】現有的所有榜單資料！\n是否確定要執行？`)) {
-            songs = importedSongs; // 取代原有所有資料
+            songs = importedSongs;
             recalculateAllActualRanks();
             saveSongs();
             updateSongTable();
